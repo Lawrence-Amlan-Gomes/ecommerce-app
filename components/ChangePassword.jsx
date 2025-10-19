@@ -110,11 +110,7 @@ const ChangePassword = () => {
 
   return auth ? (
     <div
-      className={`h-full w-full sm:p-0 p-[5%] overflow-y-auto lg:overflow-hidden lg:flex lg:justify-center lg:items-center ${
-        theme
-          ? `${colors.bgLight} ${colors.bgLight}`
-          : `${colors.bgDark} ${colors.bgDark}`
-      }`}
+      className={`w-full sm:p-0 p-[5%] overflow-y-auto lg:overflow-hidden lg:flex lg:justify-center lg:items-center sm:pt-[12%]`}
     >
       <div
         className={`p-10 overflow-hidden rounded-lg sm:my-[5%] sm:w-[80%] sm:mx-[10%] lg:w-[700px] xl:w-[800px] 2xl:w-[900px] lg:my-0 text-center ${

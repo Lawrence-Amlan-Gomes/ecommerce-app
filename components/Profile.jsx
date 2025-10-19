@@ -50,11 +50,7 @@ const Profile = () => {
 
   return auth ? (
     <div
-      className={`h-full w-full overflow-y-auto lg:overflow-hidden lg:flex lg:justify-center lg:items-center ${
-        theme
-          ? `${colors.bgLight} ${colors.bgLight}`
-          : `${colors.bgDark} ${colors.bgDark}`
-      }`}
+      className={`w-full overflow-y-auto lg:overflow-hidden lg:flex lg:justify-center lg:items-center sm:pt-[12%]`}
     >
       <div
         className={`p-5 sm:p-10 overflow-hidden rounded-lg w-[80%] mx-[10%] mt-5 xl:w-[700px] lg:w-[600px] 2xl:w-[900px] lg:my-0 text-center ${

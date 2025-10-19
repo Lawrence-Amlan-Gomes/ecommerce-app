@@ -4,14 +4,13 @@ import { useTheme } from "@/app/hooks/useTheme";
 import ToogleTheme from "./ToogleTheme";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import ProfilePic from "./ProfilePic";
+import ProfileIcon from "./ProfileIcon";
 
 // Array of navigation items
 const navItems = [
   { href: "/home", label: "Home", activeKey: "home" },
-  { href: "/projects", label: "Projects", activeKey: "projects" },
-  { href: "/about", label: "About", activeKey: "about" },
   { href: "/blogs", label: "Blogs", activeKey: "blogs" },
-  { href: "/contact", label: "Contact", activeKey: "contact" },
 ];
 
 // Reusable NavItem component
@@ -74,7 +73,7 @@ const TopNavbar = () => {
               theme ? "text-[#222222]" : "text-[#dadada]"
             }`}
           >
-            Lawrence
+            Blog Platform
           </div>
         </Link>
 
@@ -92,6 +91,7 @@ const TopNavbar = () => {
           ))}
           <div className="flex items-center">
             <ToogleTheme />
+            <ProfileIcon />
           </div>
         </div>
       </nav>

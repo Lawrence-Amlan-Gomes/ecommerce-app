@@ -8,7 +8,6 @@ import { useAuth } from "@/app/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/app/hooks/useTheme";
 import Image from "next/image";
-import googleIcon from "../public/googleIcon.png";
 import { useSession, signIn } from "next-auth/react";
 import colors from "@/app/color/color";
 import { callChangePhoto, callUpdateUser } from "@/app/actions";
@@ -137,7 +136,7 @@ const LoginForm = () => {
             found.photo = session.user.image;
           }
           setAuth(found);
-          router.push("/comments");
+          router.push("/");
           setIsLoading(false);
         } else {
           setEmailError({
@@ -180,7 +179,7 @@ const LoginForm = () => {
             matchedUser.photo = session.user.image;
           }
           setAuth(matchedUser);
-          router.push("/comments");
+          router.push("/");
         } else {
           setGoogleError({
             isError: true,
@@ -300,7 +299,7 @@ const LoginForm = () => {
               <div className="h-[30px] sm:h-[50px] w-[30px] sm:w-[50px] relative">
                 <Image
                   priority
-                  src={googleIcon}
+                  src="/googleIcon.png"
                   alt="Google Icon"
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 30vw"

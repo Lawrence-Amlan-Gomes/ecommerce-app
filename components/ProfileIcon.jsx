@@ -3,8 +3,6 @@ import Link from "next/link";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useTheme } from "@/app/hooks/useTheme";
 import { usePathname } from "next/navigation";
-import profileIconDark from "../public/profileIconDark.png";
-import profileIconLight from "../public/profileIconLight.png";
 import Image from "next/image";
 import colors from "@/app/color/color";
 
@@ -19,11 +17,11 @@ const ProfileIcon = ({ active }) => {
       {auth ? (
         <Link href="/profile">
           <div
-            className={`border-[2px] lg:h-[40px] lg:w-[40px] sm:w-[35px] sm:h-[35px] h-[30px] w-[30px] rounded-full  ${
+            className={`border-[1px] lg:h-[40px] lg:w-[40px] sm:w-[35px] sm:h-[35px] h-[30px] w-[30px] rounded-lg  ${
               theme
                 ? active == "profile"
-                  ? `bg-[#dddddd] hover:bg-[#eeeeee] text-black ${colors.keyColorBorder}`
-                  : `bg-[#dddddd] hover:bg-[#eeeeee] text-black border-[#333333]`
+                  ? `bg-transparent hover:bg-[#eeeeee] text-black ${colors.keyColorBorder}`
+                  : `bg-transparent hover:bg-[#eeeeee] text-black border-[#333333]`
                 : active == "profile"
                 ? `bg-[#000000] hover:bg-[#222222] text-white ${colors.keyColorBorder}`
                 : `bg-[#000000] hover:bg-[#222222] text-white border-[#999999]`
@@ -36,7 +34,7 @@ const ProfileIcon = ({ active }) => {
                   {" "}
                   <Image
                     priority
-                    src={theme ? profileIconLight : profileIconDark}
+                    src={theme ? "/profileIconLight.png" : "/profileIconDark.png"}
                     alt={theme ? "Proflie Icon Light" : "Proflie Icon Dark"}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 30vw"
@@ -54,11 +52,11 @@ const ProfileIcon = ({ active }) => {
         <Link href={pathname == "/login" ? "/register" : "/login"}>
           <div className="flex justify-center items-center h-full">
             <div
-              className={`rounded-full border-[2px] lg:h-[40px] lg:w-[40px] sm:w-[35px] sm:h-[35px] h-[30px] w-[30px] relative ${
+              className={`rounded-lg border-[1px] lg:h-[40px] lg:w-[40px] sm:w-[35px] sm:h-[35px] h-[30px] w-[30px] relative ${
                 theme
                   ? active == "profile"
-                    ? `bg-[#dddddd] hover:bg-[#eeeeee] text-black ${colors.keyColorBorder}`
-                    : `bg-[#dddddd] hover:bg-[#eeeeee] text-black border-[#333333]`
+                    ? `bg-transparent hover:bg-[#eeeeee] text-black ${colors.keyColorBorder}`
+                    : `bg-transparent hover:bg-[#eeeeee] text-black border-[#333333]`
                   : active == "profile"
                   ? `bg-[#000000] hover:bg-[#222222] text-white ${colors.keyColorBorder}`
                   : `bg-[#000000] hover:bg-[#222222] text-white border-[#999999]`
@@ -68,7 +66,7 @@ const ProfileIcon = ({ active }) => {
                 {" "}
                 <Image
                   priority
-                  src={theme ? profileIconLight : profileIconDark}
+                  src={theme ? "/profileIconLight.png" : "/profileIconDark.png"}
                   alt={theme ? "Proflie Icon Light" : "Proflie Icon Dark"}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 30vw"

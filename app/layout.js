@@ -1,14 +1,11 @@
 import { Roboto } from "next/font/google"; // Import Roboto instead of Inter
 import "./globals.css";
-import Navbar from "@/components/SideNavbar";
 import AuthProvider from "./providers/AuthProvider";
 import { SessionProvider } from "next-auth/react";
 import { dbConnect } from "@/services/mongo";
 import ThemeProvider from "./providers/ThemeProvider";
 import TopNavbar from "@/components/TopNavbar";
-import SideNavbar from "@/components/SideNavbar";
 import ResponseProvider from "./providers/ResponseProvider";
-import SideBarHandle from "@/components/SideBarHandle";
 import TopNavBarWarper from "@/components/TopNavBarWarper";
 import ThemeWrapper from "@/components/ThemeWrapper";
 
@@ -21,8 +18,8 @@ const roboto = Roboto({
 });
 
 export const metadata = {
-  title: "Lawrence Amlan Gomes",
-  description: "Personal Portfolio",
+  title: "Blog Platform",
+  description: "The ultimate platform for blogging enthusiasts.",
   icons: {
     icon: ["/favicon.ico?v=4"],
     apple: ["/apple-touch-icon.png?v=4"],
@@ -31,6 +28,7 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }) {
+  console.log("Hi")
   await dbConnect();
   return (
     <html lang="en">

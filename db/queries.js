@@ -1,5 +1,4 @@
 import { userModel } from "@/models/user-model";
-import { messageModel } from "@/models/message";
 
 import {
   replaceMongoIdInArray,
@@ -12,18 +11,10 @@ async function getAllUsers() {
   return replaceMongoIdInArray(allUsers);
 }
 
-async function getAllMessages() {
-  const allMessages = await messageModel.find().lean();
-  return replaceMongoIdInArray(allMessages);
-}
-
 async function createUser(user) {
   return await userModel.create(user);
 }
 
-async function createMessage(user) {
-  return await messageModel.create(user);
-}
 
 async function findUserByCredentials(credentials) {
   const user = await userModel.findOne(credentials).lean();
@@ -40,12 +31,6 @@ async function updateUser(email, name, firstTimeLogin) {
   );
 }
 
-async function updateMessage(email, message) {
-  await messageModel.updateOne(
-    { email: email },
-    { $set: { message:message } }
-  );
-}
 
 async function changePassword(email, password) {
   await userModel.updateOne({ email: email }, { $set: { password: password } });
@@ -62,7 +47,4 @@ export {
   findUserByCredentials,
   getAllUsers,
   updateUser,
-  createMessage,
-  getAllMessages,
-  updateMessage,
 };

@@ -5,9 +5,6 @@ import { useTheme } from "@/app/hooks/useTheme";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import profileIconDark from "../public/profileIconDark.png";
-import profileIconLight from "../public/profileIconLight.png";
-import colors from "@/app/color/color";
 
 export default function ProfilePic() {
   const { theme } = useTheme();
@@ -109,7 +106,7 @@ export default function ProfilePic() {
               {" "}
               <Image
                 priority
-                src={theme ? profileIconDark : profileIconLight}
+                src={theme ? "/profileIconLight.png" : "/profileIconDark.png"}
                 alt={theme ? "Proflie Icon Light" : "Proflie Icon Dark"}
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 30vw"

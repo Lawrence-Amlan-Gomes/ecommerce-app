@@ -3,11 +3,6 @@ import { useTheme } from "@/app/hooks/useTheme";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Footer from "./Footer";
-import LandingAbout from "./LandingAbout";
-import LandingProjects from "./LandingProjects";
-import LandingTestimonials from "./LandingTestimonials";
-import LandingBlogs from "./LandingBlogs";
-import LandingContact from "./LandingContact";
 
 export default function LandingPage() {
   const { theme } = useTheme();
@@ -18,12 +13,7 @@ export default function LandingPage() {
         theme ? "bg-[#ffffff] text-[#aaaaaaa]" : "bg-[#000000] text-[#eeeeee]"
       }`}
     >
-      <LandingAbout/>
-      <LandingProjects/>
-      <LandingTestimonials/>
-      <LandingBlogs/>
-      <LandingContact/>
-      <Footer />
+      <div className="w-full flex justify-center items-center sm:text-[50px] font-bold">Blog Platform</div>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 "use server";
 import { signIn, auth } from "../app/auth";
 import Image from "next/image";
-import googleIcon from "../public/googleIcon.png";
 
 export default async function SignInWithGoogle() {
   const s = await auth();
@@ -21,7 +20,7 @@ export default async function SignInWithGoogle() {
             {" "}
             <Image
               priority
-              src={googleIcon}
+              src="/googleIcon.png"
               alt={"Google Icon"}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 30vw"

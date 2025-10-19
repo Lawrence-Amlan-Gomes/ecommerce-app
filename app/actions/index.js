@@ -6,9 +6,6 @@ import {
   findUserByCredentials,
   getAllUsers,
   updateUser,
-  getAllMessages,
-  createMessage,
-  updateMessage,
 } from "@/db/queries";
 import { dbConnect } from "@/services/mongo";
 import { revalidatePath } from "next/cache";
@@ -21,10 +18,6 @@ async function registerUser(formData) {
   redirect("/login");
 }
 
-async function callCreateMessage(formData) {
-  await dbConnect();
-  const created = await createMessage(formData);
-}
 
 async function signInWithGoogle() {
   const response = await signIn("google"); // Prevent automatic redirect
@@ -41,15 +34,6 @@ async function getAllUsers2() {
   }
 }
 
-async function callGetAllMessages() {
-  try {
-    await dbConnect();
-    const users = await getAllMessages();
-    return users;
-  } catch (error) {
-    throw error;
-  }
-}
 
 async function performLogin(formData) {
   await dbConnect();
@@ -66,15 +50,6 @@ async function callUpdateUser(email, name, firstTimeLogin) {
   try {
     await updateUser(email, name, firstTimeLogin);
     revalidatePath("/");
-  } catch (error) {
-    throw error;
-  }
-}
-
-async function callUpdateMessage(email, message) {
-  await dbConnect();
-  try {
-    await updateMessage(email, message);
   } catch (error) {
     throw error;
   }
@@ -108,7 +83,4 @@ export {
   performLogin,
   registerUser,
   signInWithGoogle,
-  callCreateMessage,
-  callGetAllMessages,
-  callUpdateMessage,
 };
