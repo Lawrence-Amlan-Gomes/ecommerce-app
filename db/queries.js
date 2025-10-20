@@ -1,4 +1,5 @@
 import { userModel } from "@/models/user-model";
+import { postModel } from "@/models/post-model";
 
 import {
   replaceMongoIdInArray,
@@ -40,6 +41,15 @@ async function changePhoto(email, photo) {
   await userModel.updateOne({ email: email }, { $set: { photo: photo } });
 }
 
+async function createPost(postData) {
+  return await postModel.create(postData);
+}
+
+async function getAllPosts() {
+  const allPosts = await postModel.find().sort({ createdAt: -1 }).lean();
+  return replaceMongoIdInArray(allPosts);
+}
+
 export {
   changePassword,
   changePhoto,
@@ -47,4 +57,6 @@ export {
   findUserByCredentials,
   getAllUsers,
   updateUser,
+  createPost,
+  getAllPosts,
 };

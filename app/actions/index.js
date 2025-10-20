@@ -6,6 +6,8 @@ import {
   findUserByCredentials,
   getAllUsers,
   updateUser,
+  createPost,
+  getAllPosts
 } from "@/db/queries";
 import { dbConnect } from "@/services/mongo";
 import { revalidatePath } from "next/cache";
@@ -75,6 +77,39 @@ async function callChangePhoto(email, photo) {
   }
 }
 
+async function createBlogPost(formData) {
+  await dbConnect();
+  try {
+    const { title, content, author } = Object.fromEntries(formData);
+    
+    if (!title || !content || !author) {
+      return { success: false, message: "Title, content, and author required" };
+    }
+
+    const post = await createPost({
+      title,
+      content,
+      author,
+    });
+
+    revalidatePath("/blogs");
+    return { success: true, message: "Post created", post };
+  } catch (error) {
+    console.error("Create post error:", error);
+    return { success: false, message: "Server error" };
+  }
+}
+
+async function getAllBlogPosts() {
+  await dbConnect();
+  try {
+    const posts = await getAllPosts();
+    return posts;
+  } catch (error) {
+    throw error;
+  }
+}
+
 export {
   callChangePassword,
   callChangePhoto,
@@ -83,4 +118,6 @@ export {
   performLogin,
   registerUser,
   signInWithGoogle,
+  createBlogPost,
+  getAllBlogPosts
 };

@@ -13,7 +13,9 @@ export default function LandingPage() {
         theme ? "bg-[#ffffff] text-[#aaaaaaa]" : "bg-[#000000] text-[#eeeeee]"
       }`}
     >
-      <div className="w-full flex justify-center items-center sm:text-[50px] font-bold">Blog Platform</div>
+      <div className="w-full flex justify-center items-center sm:text-[50px] font-bold">
+        Blog Platform
+      </div>
     </div>
   );
 }
