@@ -1,26 +1,19 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useTheme } from "@/app/hooks/useTheme";
-import { createBlogPost, getAllBlogPosts } from "@/app/actions";
-import colors from "@/app/color/color";
+import { createBlogPost } from "@/app/actions";
+import PostList from "./PostList";
 
 export default function Blogs() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [posts, setPosts] = useState([]);
   
   const { auth } = useAuth();
   const { theme } = useTheme();
 
-  // Load posts on component mount
-  useEffect(() => {
-    getAllBlogPosts().then(setPosts);
-  }, []);
-
-  // Handle form submission
   const handleSubmit = async (formData) => {
     setIsLoading(true);
     setMessage("");
@@ -31,9 +24,6 @@ export default function Blogs() {
       setMessage("✅ Post created successfully!");
       setTitle("");
       setContent("");
-      // Refresh posts list
-      const updatedPosts = await getAllBlogPosts();
-      setPosts(updatedPosts);
     } else {
       setMessage(`❌ ${result.message}`);
     }
@@ -41,7 +31,7 @@ export default function Blogs() {
     setIsLoading(false);
   };
 
-  // Show login prompt if not authenticated
+  // LOGIN PROMPT - SHOW IF NOT AUTHENTICATED
   if (!auth) {
     return (
       <div className={`pt-[10%] ${theme ? "bg-gray-50" : "bg-[#010101"}`}>
@@ -71,6 +61,7 @@ export default function Blogs() {
     );
   }
 
+  // AUTHENTICATED USER - SHOW FORM + POSTS
   return (
     <div className={`pt-[10%] ${theme ? "bg-gray-50" : "bg-[#010101"}`}>
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -82,8 +73,8 @@ export default function Blogs() {
         </h1>
         
         {/* Create Post Form */}
-        <div className={`max-w-2xl mx-auto p-6 rounded-lg mb-8 ${
-          theme ? colors.cardLight : colors.cardDark
+        <div className={`max-w-2xl mx-auto border-[1px] p-6 rounded-lg mb-8 ${
+          theme ? "bg-white border-[#cccccc]" : "bg-[#222222] border-[#444444]"
         }`}>
           <h2 className={`text-2xl font-bold mb-6 text-center ${
             theme ? "text-gray-800" : "text-white"
@@ -92,10 +83,8 @@ export default function Blogs() {
           </h2>
           
           <form action={handleSubmit} className="space-y-4">
-            {/* Hidden Author Field */}
             <input type="hidden" name="author" value={auth.email} />
             
-            {/* Title Input */}
             <div>
               <input
                 type="text"
@@ -112,7 +101,6 @@ export default function Blogs() {
               />
             </div>
 
-            {/* Content Textarea */}
             <div>
               <textarea
                 name="content"
@@ -129,7 +117,6 @@ export default function Blogs() {
               />
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -143,7 +130,6 @@ export default function Blogs() {
             </button>
           </form>
 
-          {/* Success/Error Message */}
           {message && (
             <div className={`mt-4 p-3 rounded-lg text-center text-sm font-medium ${
               message.includes("✅")
@@ -155,57 +141,8 @@ export default function Blogs() {
           )}
         </div>
 
-        {/* Posts List */}
-        <h2 className={`text-2xl font-bold mb-6 ${
-          theme ? "text-gray-800" : "text-white"
-        }`}>
-          Recent Posts ({posts.length})
-        </h2>
-        
-        {posts.length === 0 ? (
-          <div className={`text-center py-12 ${
-            theme ? "text-gray-500" : "text-gray-400"
-          }`}>
-            <p className="text-xl">No posts yet. <br /> Be the first to create one!</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {posts.map((post) => (
-              <article
-                key={post.id}
-                className={`p-6 rounded-lg border ${
-                  theme
-                    ? "bg-white border-gray-200 shadow-sm hover:shadow-md"
-                    : "bg-[#222222] border-[#444444] hover:border-[#555555]"
-                } transition-shadow duration-200`}
-              >
-                <h3 className={`text-xl font-semibold mb-3 ${
-                  theme ? "text-gray-800" : "text-white"
-                }`}>
-                  {post.title}
-                </h3>
-                <p className={`mb-4 leading-relaxed ${
-                  theme ? "text-gray-600" : "text-gray-300"
-                }`}>
-                  {post.content}
-                </p>
-                <footer className={`text-sm ${
-                  theme ? "text-gray-500" : "text-gray-400"
-                }`}>
-                  <span>By {post.author}</span>
-                  <span className="mx-2">•</span>
-                  <span>
-                    {new Date(post.createdAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric"
-                    })}
-                  </span>
-                </footer>
-              </article>
-            ))}
-          </div>
-        )}
+        {/* Post List */}
+        <PostList />
       </div>
     </div>
   );
