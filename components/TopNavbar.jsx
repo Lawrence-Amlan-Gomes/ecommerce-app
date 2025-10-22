@@ -10,6 +10,7 @@ import ProfileIcon from "./ProfileIcon";
 // Array of navigation items
 const navItems = [
   { href: "/home", label: "Home", activeKey: "home" },
+  { href: "/products", label: "Products", activeKey: "products" },
 ];
 
 // Reusable NavItem component
@@ -110,7 +111,7 @@ const TopNavbar = () => {
               theme ? "text-[#222222]" : "text-[#dadada]"
             }`}
           >
-            Lawrence
+            E-Commerce
           </div>
         </Link>
 
