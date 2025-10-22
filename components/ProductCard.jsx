@@ -1,7 +1,7 @@
 "use client";
 import { useTheme } from "@/app/hooks/useTheme";
-import Image from "next/image";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function ProductCard({ name, price, image }) {
@@ -11,8 +11,8 @@ export default function ProductCard({ name, price, image }) {
     <div
       className={`flex flex-col rounded-lg overflow-hidden border-[1px] ${
         theme
-          ? "bg-[#ffffff] hover:bg-[#fafafa] text-[#333333] border-blue-800"
-          : "bg-[#000000] hover:bg-[#0a0a0a] text-[#dddddd] border-blue-800"
+          ? "bg-[#ffffff] hover:bg-[#fafafa] text-[#333333] border-orange-800"
+          : "bg-[#000000] hover:bg-[#0a0a0a] text-[#dddddd] border-orange-800"
       }`}
     >
       <div className="relative w-full h-[200px] px-6 pt-6 overflow-hidden">
@@ -38,8 +38,8 @@ export default function ProductCard({ name, price, image }) {
         <button
           className={`text-sm px-4 py-2 rounded-md ${
             theme
-              ? "bg-blue-800 text-[#ffffff] hover:bg-blue-900"
-              : "bg-blue-700 text-[#ffffff] hover:bg-blue-800"
+              ? "bg-orange-800 text-[#ffffff] hover:bg-blue-900"
+              : "bg-orange-700 text-[#ffffff] hover:bg-orange-800"
           }`}
         >
           Add to Cart

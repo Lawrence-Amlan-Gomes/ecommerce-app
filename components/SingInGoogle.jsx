@@ -1,6 +1,6 @@
 "use server";
-import { signIn } from "../app/auth";
 import Image from "next/image";
+import { signIn } from "../app/auth";
 
 export default async function SignInGoogle() {
   return (
@@ -10,9 +10,7 @@ export default async function SignInGoogle() {
         await signIn("google");
       }}
     >
-      <button
-        className="text-[16px] flex items-center gap-4 h-[60px] cursor-pointer w-[270px] rounded-md mt-10 py-2 px-6 bg-blue-800 hover:bg-blue-700 text-white"
-      >
+      <button className="text-[16px] flex items-center gap-4 h-[60px] cursor-pointer w-[270px] rounded-md mt-10 py-2 px-6 bg-orange-800 hover:bg-orange-700 text-white">
         <div className="h-full float-left flex justify-center items-center">
           <div className="h-[50px] w-[50px] relative">
             <Image

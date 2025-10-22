@@ -2,9 +2,8 @@
 import { callChangePhoto, callUpdateUser } from "@/app/actions";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useTheme } from "@/app/hooks/useTheme";
-import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
 import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 
 export default function ProfilePic() {
   const { theme } = useTheme();
@@ -91,7 +90,11 @@ export default function ProfilePic() {
           onClick={() => setEditPic((prev) => !prev)}
         >
           {isUploading ? ( // 🔄 Show uploading message
-            <div className={`w-full h-full flex justify-center items-center text-lg font-bold ${theme ? "bg-black text-white" : "bg-white text-black"}`}>
+            <div
+              className={`w-full h-full flex justify-center items-center text-lg font-bold ${
+                theme ? "bg-black text-white" : "bg-white text-black"
+              }`}
+            >
               Uploading...
             </div>
           ) : image ? (
@@ -102,7 +105,11 @@ export default function ProfilePic() {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className={`${theme ? "bg-black" : "bg-white"} h-full w-full relative`}>
+            <div
+              className={`${
+                theme ? "bg-black" : "bg-white"
+              } h-full w-full relative`}
+            >
               {" "}
               <Image
                 priority
@@ -129,10 +136,8 @@ export default function ProfilePic() {
           />
           <button
             type="button"
-            className={`sm:py-2 py-1 text-blue-700 text-[12px] sm:text-[16px] rounded-lg border-[2px] border-blue-700 px-3 w-[56%] m-[2%] box-border float-left ${
-              theme
-                ? ""
-                : ""
+            className={`sm:py-2 py-1 text-orange-700 text-[12px] sm:text-[16px] rounded-lg border-[2px] border-orange-700 px-3 w-[56%] m-[2%] box-border float-left ${
+              theme ? "" : ""
             }`}
             onClick={handleImageClick}
           >
@@ -140,9 +145,7 @@ export default function ProfilePic() {
           </button>
           <button
             className={`sm:py-2 py-1 rounded-lg text-red-700 text-[12px] sm:text-[16px] border-[2px] border-red-700 px-3 w-[36%] m-[2%] box-border float-left ${
-              theme
-                ? ""
-                : ""
+              theme ? "" : ""
             }`}
             onClick={handleImageDelete}
           >

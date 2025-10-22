@@ -1,8 +1,8 @@
 "use client";
 
-import { FaArrowUp } from "react-icons/fa";
-import { useEffect, useState } from "react";
 import { useTheme } from "@/app/hooks/useTheme";
+import { useEffect, useState } from "react";
+import { FaArrowUp } from "react-icons/fa";
 
 export default function PromptInput({
   myText,
@@ -59,7 +59,7 @@ export default function PromptInput({
             getResponse();
           }
         }}
-        className="absolute bottom-5 right-5 cursor-pointer hover:text-white hover:border-[1px] hover:bg-blue-800 text-blue-800 border-[1px] border-blue-800 rounded-full p-1 text-[25px] sm:text-[25px] hover:cursor-pointer"
+        className="absolute bottom-5 right-5 cursor-pointer hover:text-white hover:border-[1px] hover:bg-orange-800 text-orange-800 border-[1px] border-orange-800 rounded-full p-1 text-[25px] sm:text-[25px] hover:cursor-pointer"
       />
     </div>
   );

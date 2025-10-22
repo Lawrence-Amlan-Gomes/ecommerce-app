@@ -1,10 +1,10 @@
 "use client";
 import { useTheme } from "@/app/hooks/useTheme";
-import { useEffect, useState } from "react";
 import products from "@/app/products/products"; // Use mock data
-import ProductCard from "./ProductCard";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import Footer from "./Footer";
+import ProductCard from "./ProductCard";
 
 export default function LandingPage() {
   const { theme } = useTheme();
@@ -64,7 +64,8 @@ export default function LandingPage() {
               theme ? "text-[#666666]" : "text-[#aaaaaa]"
             }`}
           >
-            Discover our latest products! Check back often for new arrivals and exclusive deals.
+            Discover our latest products! Check back often for new arrivals and
+            exclusive deals.
           </p>
         </div>
         {productList.length === 0 ? (
@@ -88,8 +89,8 @@ export default function LandingPage() {
             <div
               className={`px-4 py-2 rounded-md text-sm sm:text-[15px] font-medium hover:cursor-pointer ${
                 theme
-                  ? "bg-blue-800 text-[#ffffff] hover:bg-white border-[1px] border-blue-800 hover:text-blue-800"
-                  : "bg-blue-700 text-[#ffffff] hover:bg-black border-[1px] border-blue-600 hover:text-blue-600"
+                  ? "bg-orange-800 text-[#ffffff] hover:bg-white border-[1px] border-orange-800 hover:text-orange-800"
+                  : "bg-orange-700 text-[#ffffff] hover:bg-black border-[1px] border-orange-600 hover:text-orange-600"
               }`}
             >
               View All Products

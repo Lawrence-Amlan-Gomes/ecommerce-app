@@ -1,10 +1,10 @@
 "use client";
+import blogs from "@/app/blogs/blogs";
 import { useTheme } from "@/app/hooks/useTheme";
 import Image from "next/image";
-import blogs from "@/app/blogs/blogs";
-import Footer from "./Footer";
-import { FaArrowLeft } from "react-icons/fa";
 import Link from "next/link";
+import { FaArrowLeft } from "react-icons/fa";
+import Footer from "./Footer";
 
 export default function SingleBlog({ urlTitle }) {
   const { theme } = useTheme();
@@ -56,7 +56,7 @@ export default function SingleBlog({ urlTitle }) {
         <div className="mb-12">
           <div
             className={`relative p-0 overflow-hidden border-[1px] mb-3 rounded-2xl ${
-              theme ? "border-blue-800" : "border-blue-700"
+              theme ? "border-orange-800" : "border-orange-700"
             }`}
           >
             <Image
@@ -105,7 +105,7 @@ export default function SingleBlog({ urlTitle }) {
                   {desc.images.map((imgSrc, imgIndex) => (
                     <div
                       className={`relative p-0 overflow-hidden mx-auto border-[1px] mb-3 rounded-2xl ${
-                        theme ? "border-blue-800" : "border-blue-700"
+                        theme ? "border-orange-800" : "border-orange-700"
                       }`}
                       key={imgIndex}
                     >
@@ -128,8 +128,8 @@ export default function SingleBlog({ urlTitle }) {
             href="/blogs"
             className={`p-2 sm:p-3 rounded-full text-lg sm:text-xl md:hidden block ${
               theme
-                ? "bg-[#ffffff] text-[#0a0a0a] border-[1px] border-blue-800 hover:bg-blue-800 hover:text-[#ffffff]"
-                : "bg-[#1a1a1a] text-[#ebebeb] border-[1px] border-blue-700 hover:bg-blue-700 hover:text-[#ffffff]"
+                ? "bg-[#ffffff] text-[#0a0a0a] border-[1px] border-orange-800 hover:bg-orange-800 hover:text-[#ffffff]"
+                : "bg-[#1a1a1a] text-[#ebebeb] border-[1px] border-orange-700 hover:bg-orange-700 hover:text-[#ffffff]"
             }`}
             title="Back to Projects"
           >
@@ -141,8 +141,8 @@ export default function SingleBlog({ urlTitle }) {
             href="/blogs"
             className={`p-2 sm:p-3 rounded-full text-lg sm:text-xl ${
               theme
-                ? "bg-[#ffffff] text-[#0a0a0a] border-[1px] border-blue-800 hover:bg-blue-800 hover:text-[#ffffff]"
-                : "bg-[#1a1a1a] text-[#ebebeb] border-[1px] border-blue-700 hover:bg-blue-700 hover:text-[#ffffff]"
+                ? "bg-[#ffffff] text-[#0a0a0a] border-[1px] border-orange-800 hover:bg-orange-800 hover:text-[#ffffff]"
+                : "bg-[#1a1a1a] text-[#ebebeb] border-[1px] border-orange-700 hover:bg-orange-700 hover:text-[#ffffff]"
             }`}
             title="Back to Projects"
           >

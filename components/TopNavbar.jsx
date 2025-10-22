@@ -1,11 +1,10 @@
 "use client";
-import Link from "next/link";
 import { useTheme } from "@/app/hooks/useTheme";
-import ToogleTheme from "./ToogleTheme";
-import { useEffect, useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import ProfilePic from "./ProfilePic";
+import { useEffect, useState } from "react";
 import ProfileIcon from "./ProfileIcon";
+import ToogleTheme from "./ToogleTheme";
 
 // Array of navigation items
 const navItems = [
@@ -24,10 +23,10 @@ const NavItem = ({ href, label, active, onClick, theme }) => (
         className={`sm:text-[15px] font-sans tracking-wider ${
           theme
             ? active
-              ? "text-blue-800"
+              ? "text-orange-800"
               : "text-[#555555] hover:text-[#000000]"
             : active
-            ? "text-blue-600"
+            ? "text-orange-600"
             : "text-[#cccccc] hover:text-[#ffffff]"
         } `}
       >
@@ -135,7 +134,11 @@ const TopNavbar = () => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="2"
-                d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
+                d={
+                  isMenuOpen
+                    ? "M6 18L18 6M6 6l12 12"
+                    : "M4 6h16M4 12h16M4 18h16"
+                }
               />
             </svg>
           </button>

@@ -1,24 +1,34 @@
 "use client";
-import { useState } from "react";
-import { useAuth } from "@/app/hooks/useAuth";
-import { useTheme } from "@/app/hooks/useTheme";
 import { createBlogPost } from "@/app/actions";
 import colors from "@/app/color/color";
+import { useAuth } from "@/app/hooks/useAuth";
+import { useTheme } from "@/app/hooks/useTheme";
+import { useState } from "react";
 
 export default function CreatePostForm() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { auth } = useAuth();
   const { theme } = useTheme();
 
   // Only show form if user is logged in
   if (!auth) {
     return (
-      <div className={`text-center py-8 ${theme ? "text-gray-600" : "text-gray-400"}`}>
-        <p>Please <a href="/login" className="underline">login</a> to create posts</p>
+      <div
+        className={`text-center py-8 ${
+          theme ? "text-gray-600" : "text-gray-400"
+        }`}
+      >
+        <p>
+          Please{" "}
+          <a href="/login" className="underline">
+            login
+          </a>{" "}
+          to create posts
+        </p>
       </div>
     );
   }
@@ -26,9 +36,9 @@ export default function CreatePostForm() {
   const handleSubmit = async (formData) => {
     setIsLoading(true);
     setMessage("");
-    
+
     const result = await createBlogPost(formData);
-    
+
     if (result.success) {
       setMessage("✅ Post created successfully!");
       setTitle("");
@@ -36,20 +46,32 @@ export default function CreatePostForm() {
     } else {
       setMessage(`❌ ${result.message}`);
     }
-    
+
     setIsLoading(false);
   };
 
   return (
-    <div className={`max-w-2xl mx-auto p-6 rounded-lg ${theme ? colors.cardLight : colors.cardDark}`}>
-      <h2 className={`text-2xl font-bold mb-6 text-center ${theme ? "text-gray-800" : "text-white"}`}>
+    <div
+      className={`max-w-2xl mx-auto p-6 rounded-lg ${
+        theme ? colors.cardLight : colors.cardDark
+      }`}
+    >
+      <h2
+        className={`text-2xl font-bold mb-6 text-center ${
+          theme ? "text-gray-800" : "text-white"
+        }`}
+      >
         Create New Post
       </h2>
-      
+
       <form action={handleSubmit} className="space-y-4">
         {/* Title Field */}
         <div>
-          <label className={`block text-sm font-medium mb-2 ${theme ? "text-gray-700" : "text-gray-300"}`}>
+          <label
+            className={`block text-sm font-medium mb-2 ${
+              theme ? "text-gray-700" : "text-gray-300"
+            }`}
+          >
             Title
           </label>
           <input
@@ -59,8 +81,8 @@ export default function CreatePostForm() {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter post title..."
             className={`w-full p-3 rounded-lg border ${
-              theme 
-                ? "bg-white border-gray-300 text-gray-900 focus:border-blue-500" 
+              theme
+                ? "bg-white border-gray-300 text-gray-900 focus:border-orange-500"
                 : "bg-gray-800 border-gray-600 text-white focus:border-blue-400"
             } focus:outline-none focus:ring-2`}
             required
@@ -69,7 +91,11 @@ export default function CreatePostForm() {
 
         {/* Content Field */}
         <div>
-          <label className={`block text-sm font-medium mb-2 ${theme ? "text-gray-700" : "text-gray-300"}`}>
+          <label
+            className={`block text-sm font-medium mb-2 ${
+              theme ? "text-gray-700" : "text-gray-300"
+            }`}
+          >
             Content
           </label>
           <textarea
@@ -79,8 +105,8 @@ export default function CreatePostForm() {
             placeholder="Write your post content..."
             rows="6"
             className={`w-full p-3 rounded-lg border resize-none ${
-              theme 
-                ? "bg-white border-gray-300 text-gray-900 focus:border-blue-500" 
+              theme
+                ? "bg-white border-gray-300 text-gray-900 focus:border-orange-500"
                 : "bg-gray-800 border-gray-600 text-white focus:border-blue-400"
             } focus:outline-none focus:ring-2`}
             required
@@ -106,11 +132,13 @@ export default function CreatePostForm() {
 
       {/* Success/Error Message */}
       {message && (
-        <div className={`mt-4 p-3 rounded-lg text-center ${
-          message.includes("✅") 
-            ? "bg-green-100 text-green-700 border border-green-200" 
-            : "bg-red-100 text-red-700 border border-red-200"
-        } ${theme ? "" : "bg-red-900/20 text-red-300"}`}>
+        <div
+          className={`mt-4 p-3 rounded-lg text-center ${
+            message.includes("✅")
+              ? "bg-green-100 text-green-700 border border-green-200"
+              : "bg-red-100 text-red-700 border border-red-200"
+          } ${theme ? "" : "bg-red-900/20 text-red-300"}`}
+        >
           {message}
         </div>
       )}

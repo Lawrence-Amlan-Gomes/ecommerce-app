@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useResponse } from "@/app/hooks/useResponse";
-import { response } from "@/app/server";
-import PromptInput from "./PromptInput";
-import EachInputOutput from "./EachInputOutput";
-import { useTheme } from "@/app/hooks/useTheme";
 import { useAuth } from "@/app/hooks/useAuth";
+import { useResponse } from "@/app/hooks/useResponse";
+import { useTheme } from "@/app/hooks/useTheme";
+import { response } from "@/app/server";
 import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import EachInputOutput from "./EachInputOutput";
+import PromptInput from "./PromptInput";
 
 export default function Chat() {
   const {
@@ -94,8 +94,8 @@ export default function Chat() {
     <div
       className={`w-full h-full relative overflow-hidden border-[1px] p-2 rounded-xl ${
         theme
-          ? "bg-[#f8f8f8] border-blue-800 text-[#0a0a0a]"
-          : "bg-[#080808] border-blue-800 text-[#ebebeb]"
+          ? "bg-[#f8f8f8] border-orange-800 text-[#0a0a0a]"
+          : "bg-[#080808] border-orange-800 text-[#ebebeb]"
       }`}
     >
       {firstTime ? (

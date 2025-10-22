@@ -1,6 +1,6 @@
 "use client";
 
-import { registerUser, getAllUsers2 } from "@/app/actions";
+import { getAllUsers2, registerUser } from "@/app/actions";
 import colors from "@/app/color/color";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useTheme } from "@/app/hooks/useTheme";
@@ -337,7 +337,10 @@ const RegistrationForm = () => {
         <div className="float-left w-full overflow-hidden">
           <p className="sm:mt-10 mt-5 text-[12px] lg:text-[16px] 2xl:text-[26px]">
             Already Have An Account?{" "}
-            <Link href="/login" className={`${colors.keyColorText} hover:text-blue-500`}>
+            <Link
+              href="/login"
+              className={`${colors.keyColorText} hover:text-orange-500`}
+            >
               Login
             </Link>
           </p>

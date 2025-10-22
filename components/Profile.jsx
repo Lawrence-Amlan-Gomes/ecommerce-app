@@ -1,12 +1,12 @@
 "use client";
 import { callUpdateUser } from "@/app/actions";
+import colors from "@/app/color/color";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useTheme } from "@/app/hooks/useTheme";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ProfilePic from "./ProfilePic";
-import colors from "@/app/color/color";
 
 const Profile = () => {
   const router = useRouter();
@@ -64,7 +64,7 @@ const Profile = () => {
               <div className="w-full sm:mt-5 sm:mb-5 mt-5 text-[14px] flex items-center justify-center font-bold">
                 {isEditing ? (
                   <input
-                    className={`bg-transparent border-[2px] border-blue-700 focus:border-green-700 focus:outline-none text-center rounded-lg w-[70%] sm:w-full p-1 sm:p-3`}
+                    className={`bg-transparent border-[2px] border-orange-700 focus:border-green-700 focus:outline-none text-center rounded-lg w-[70%] sm:w-full p-1 sm:p-3`}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
@@ -84,7 +84,7 @@ const Profile = () => {
                   className={`${
                     isEditing
                       ? "bg-green-700 hover:bg-green-800"
-                      : `${colors.keyColorBg} hover:bg-blue-800`
+                      : `${colors.keyColorBg} hover:bg-orange-800`
                   } bg-[#161616] sm:p-3 py-2 px-5 w-[70%] sm:w-full rounded-lg hover:bg-[#202020] tracking-wider text-white`}
                 >
                   {isEditing ? "Update" : "Edit"}
@@ -122,30 +122,38 @@ const Profile = () => {
         </div>
 
         <div className={`w-full float-left sm:block hidden mb-5`}>
-          <div className={`w-[50%] float-left h-[200px] flex justify-center items-center pb-5`}><ProfilePic /></div>
-          <div className={`w-[50%] float-left h-[200px] flex justify-center items-center`}>{auth ? (
-            <div>
-              <div className="w-full mt-5 mb-5 flex items-center justify-center font-bold text-[20px]">
-                {isEditing ? (
-                  <input
-                    className={`bg-transparent border-[2px] border-blue-700 focus:border-green-700 focus:outline-none text-center rounded-lg w-full p-3`}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                ) : (
-                  <div>{name}</div>
-                )}
+          <div
+            className={`w-[50%] float-left h-[200px] flex justify-center items-center pb-5`}
+          >
+            <ProfilePic />
+          </div>
+          <div
+            className={`w-[50%] float-left h-[200px] flex justify-center items-center`}
+          >
+            {auth ? (
+              <div>
+                <div className="w-full mt-5 mb-5 flex items-center justify-center font-bold text-[20px]">
+                  {isEditing ? (
+                    <input
+                      className={`bg-transparent border-[2px] border-orange-700 focus:border-green-700 focus:outline-none text-center rounded-lg w-full p-3`}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  ) : (
+                    <div>{name}</div>
+                  )}
+                </div>
+                <div className="w-full mt-5 mb-5 flex items-center justify-center">
+                  {auth.email}
+                </div>
+                <div className="w-full mt-5 mb-5 flex items-center justify-center">
+                  Subscription: {auth.paymentType}
+                </div>
               </div>
-              <div className="w-full mt-5 mb-5 flex items-center justify-center">
-                {auth.email}
-              </div>
-              <div className="w-full mt-5 mb-5 flex items-center justify-center">
-                Subscription: {auth.paymentType}
-              </div>
-            </div>
-          ) : (
-            <></>
-          )}</div>
+            ) : (
+              <></>
+            )}
+          </div>
         </div>
         <div className={`w-full float-left h-[50px] sm:block hidden`}>
           <div className="w-[25%] mr-[5%] h-full float-left flex items-center justify-center">
@@ -154,7 +162,7 @@ const Profile = () => {
               className={`${
                 isEditing
                   ? "bg-green-700 hover:bg-green-800"
-                  : `${colors.keyColorBg} hover:bg-blue-800`
+                  : `${colors.keyColorBg} hover:bg-orange-800`
               } text-[16px] py-2 px-5 w-[70%] sm:w-full rounded-lg hover:bg-[#202020] text-white`}
             >
               {isEditing ? "Update" : "Edit"}
