@@ -10,7 +10,6 @@ import ProfileIcon from "./ProfileIcon";
 // Array of navigation items
 const navItems = [
   { href: "/home", label: "Home", activeKey: "home" },
-  { href: "/blogs", label: "Blogs", activeKey: "blogs" },
 ];
 
 // Reusable NavItem component
@@ -73,7 +72,7 @@ const TopNavbar = () => {
               theme ? "text-[#222222]" : "text-[#dadada]"
             }`}
           >
-            Blog Platform
+            E-Commerce
           </div>
         </Link>
 
