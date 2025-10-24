@@ -5,12 +5,19 @@ import { useTheme } from "@/app/hooks/useTheme";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import colors from "@/app/color/color";
+import { useEffect, useState } from "react";
 
 const ProfileIcon = ({ active }) => {
   const pathname = usePathname();
   const { theme } = useTheme();
+  const [image, setImage] = useState("");
   const { auth } = useAuth();
-  const handleClick = () => {};
+
+  useEffect(() => {
+    if (auth?.photo) {
+      setImage(auth.photo);
+    }
+  }, [auth]);
 
   return (
     <div>
@@ -26,7 +33,6 @@ const ProfileIcon = ({ active }) => {
                 ? `bg-[#000000] hover:bg-[#222222] text-white ${colors.keyColorBorder}`
                 : `bg-[#000000] hover:bg-[#222222] text-white border-[#999999]`
             } relative overflow-hidden`}
-            onClick={handleClick}
           >
             {auth.photo == "" ? (
               <div className="w-full h-full flex justify-center items-center sm:text-[25px] text-[18px] font-bold">
@@ -34,7 +40,9 @@ const ProfileIcon = ({ active }) => {
                   {" "}
                   <Image
                     priority
-                    src={theme ? "/profileIconLight.png" : "/profileIconDark.png"}
+                    src={
+                      theme ? "/profileIconLight.png" : "/profileIconDark.png"
+                    }
                     alt={theme ? "Proflie Icon Light" : "Proflie Icon Dark"}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 30vw"

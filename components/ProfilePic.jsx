@@ -86,7 +86,10 @@ export default function ProfilePic() {
     <div className="w-full mt-5 relative">
       <div className="w-full flex items-center justify-center relative">
         <div
-          className="bg-white sm:w-[150px] w-[100px] sm:h-[150px] h-[100px] rounded-full overflow-hidden flex items-center justify-center relative cursor-pointer"
+          className={`sm:w-[150px] w-[100px] sm:h-[150px] h-[100px] rounded-xl border-[1px] overflow-hidden flex items-center justify-center relative cursor-pointer ${
+            theme ? "border-orange-700" : "border-orange-700"
+          }
+          }`}
           onClick={() => setEditPic((prev) => !prev)}
         >
           {isUploading ? ( // 🔄 Show uploading message
@@ -105,11 +108,7 @@ export default function ProfilePic() {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div
-              className={`${
-                theme ? "bg-black" : "bg-white"
-              } h-full w-full relative`}
-            >
+            <div className={` h-full w-full relative`}>
               {" "}
               <Image
                 priority

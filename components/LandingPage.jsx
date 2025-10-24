@@ -1,20 +1,20 @@
 "use client";
 import { useTheme } from "@/app/hooks/useTheme";
-import products from "@/app/products/products"; // Use mock data
-import Link from "next/link";
+import { useResponse } from "@/app/hooks/useResponse";
 import { useEffect, useState } from "react";
-import Footer from "./Footer";
+import { getAllProductsAction } from "@/app/actions";
 import ProductCard from "./ProductCard";
+import Link from "next/link";
+import Footer from "./Footer";
 
 export default function LandingPage() {
   const { theme } = useTheme();
-  const [productList, setProductList] = useState([]);
+  const { products, setProducts } = useResponse();
   const [numProducts, setNumProducts] = useState(9);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    // Set mock data directly
-    setProductList(products);
-
+    // Update numProducts based on screen size
     const updateNumProducts = () => {
       if (window.innerWidth < 768) {
         setNumProducts(3); // Mobile: show 3
@@ -29,6 +29,33 @@ export default function LandingPage() {
     window.addEventListener("resize", updateNumProducts);
     return () => window.removeEventListener("resize", updateNumProducts);
   }, []);
+
+  useEffect(() => {
+    // Fetch all products from the database
+    const fetchProducts = async () => {
+      try {
+        const fetchedProducts = await getAllProductsAction();
+        setProducts((prev) => {
+          // Ensure prev is an array
+          const prevArray = Array.isArray(prev) ? prev : [];
+          // Avoid duplicates by checking IDs
+          const newProducts = fetchedProducts.filter(
+            (newProduct) =>
+              !prevArray.some((existing) => existing.id === newProduct.id)
+          );
+          return [...prevArray, ...newProducts];
+        });
+      } catch (err) {
+        setError("Failed to load products. Please try again later.");
+        console.error("Error fetching products:", err);
+      }
+    };
+
+    // Only fetch if products state is empty
+    if (products.length === 0) {
+      fetchProducts();
+    }
+  }, [products.length, setProducts]);
 
   return (
     <>
@@ -60,7 +87,7 @@ export default function LandingPage() {
             />
           </div>
           <p
-            className={`text-base lg:text-md w-full md:w-[50%] mt-2 ${
+            className={`text-base lg:text-md w-full md:w-[100%] mt-2 ${
               theme ? "text-[#666666]" : "text-[#aaaaaa]"
             }`}
           >
@@ -68,18 +95,27 @@ export default function LandingPage() {
             exclusive deals.
           </p>
         </div>
-        {productList.length === 0 ? (
-          <div className="container mx-auto p-4 text-center">
-            No products available.
+        {error ? (
+          <div className="container mx-auto p-4 text-center text-red-600">
+            {error}
+          </div>
+        ) : products.length === 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {Array.from({ length: numProducts }).map((_, index) => (
+              <ProductCard key={`loading-${index}`} loading={true} />
+            ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {productList.slice(0, numProducts).map((product, index) => (
+            {products.slice(0, numProducts).map((product) => (
               <ProductCard
-                key={index} // Use index since mock data has no id
+                key={product.id}
+                id={product.id}
                 name={product.name}
                 price={product.price}
                 image={product.image}
+                discount={product.discount}
+                description={product.description}
               />
             ))}
           </div>

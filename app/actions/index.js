@@ -1,4 +1,3 @@
-// app/actions/index.js
 "use server";
 import {
   changePassword,
@@ -9,20 +8,26 @@ import {
   updateUser,
   getAllProducts,
   createProduct,
+  productExistsById,
+  productExistsBySku,
+  updateCart,
 } from "@/db/queries";
 import { dbConnect } from "@/services/mongo";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { signIn } from "../auth";
+
 async function registerUser(formData) {
   await dbConnect();
   const created = await createUser(formData);
   redirect("/login");
 }
+
 async function signInWithGoogle() {
   const response = await signIn("google"); // Prevent automatic redirect
   return response; // Return the response object
 }
+
 async function getAllUsers2() {
   try {
     await dbConnect();
@@ -32,6 +37,7 @@ async function getAllUsers2() {
     throw error;
   }
 }
+
 async function performLogin(formData) {
   await dbConnect();
   try {
@@ -41,6 +47,7 @@ async function performLogin(formData) {
     throw error;
   }
 }
+
 async function callUpdateUser(email, name, firstTimeLogin) {
   await dbConnect();
   try {
@@ -50,6 +57,17 @@ async function callUpdateUser(email, name, firstTimeLogin) {
     throw error;
   }
 }
+
+async function callUpdateCart(email, cart) {
+  await dbConnect();
+  try {
+    await updateCart(email, cart);
+    revalidatePath("/");
+  } catch (error) {
+    throw error;
+  }
+}
+
 async function callChangePassword(email, password) {
   await dbConnect();
   try {
@@ -59,6 +77,7 @@ async function callChangePassword(email, password) {
     throw error;
   }
 }
+
 async function callChangePhoto(email, photo) {
   await dbConnect();
   try {
@@ -83,12 +102,31 @@ async function createProductAction(productData) {
   await dbConnect();
   try {
     const created = await createProduct(productData);
-    revalidatePath("/home"); // Or wherever products are displayed
-    return created;
+    revalidatePath("/admin"); // Revalidate the admin page to reflect the new product
+    return created; // Return the plain object
   } catch (error) {
     throw error;
   }
 }
+
+async function checkProductById(id) {
+  await dbConnect();
+  try {
+    return await productExistsById(id);
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function checkProductBySku(sku) {
+  await dbConnect();
+  try {
+    return await productExistsBySku(sku);
+  } catch (error) {
+    throw error;
+  }
+}
+
 export {
   callChangePassword,
   callChangePhoto,
@@ -98,5 +136,8 @@ export {
   registerUser,
   signInWithGoogle,
   createProductAction,
-  getAllProductsAction
+  getAllProductsAction,
+  checkProductById,
+  checkProductBySku,
+  callUpdateCart,
 };

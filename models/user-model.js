@@ -1,43 +1,18 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 
-const schema = new Schema({
-  name: {
-    required: true,
-    type: String,
+const UserSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    photo: { type: String },
+    firstTimeLogin: { type: Boolean, default: true },
+    cart: { type: Array, default: [] },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
   },
-  email: {
-    required: true,
-    type: String,
-  },
-  password: {
-    required: false,
-    type: String,
-  },
-  photo: {
-    required: false,
-    type: String,
-  },
-  paymentType: {
-    required: false,
-    type: String,
-  },
-  createdAt: {
-    type: Date,
-    required: false,
-  },
-  updatedAt: {
-    type: Date,
-    required: false,
-  },
-  isAdmin: {
-    type: Boolean,
-    required: false,
-  },
-  firstTimeLogin: {
-    type: Boolean,
-    required: false,
-  },
-});
+  { versionKey: false } // Disable __v for the document
+);
 
 export const userModel =
-  mongoose.models.users ?? mongoose.model("users", schema);
+  mongoose.models?.users || mongoose.model("users", UserSchema);

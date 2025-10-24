@@ -1,16 +1,11 @@
 "use client";
 import { useTheme } from "@/app/hooks/useTheme";
+import { useAuth } from "@/app/hooks/useAuth";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import ProfileIcon from "./ProfileIcon";
 import ToogleTheme from "./ToogleTheme";
-
-// Array of navigation items
-const navItems = [
-  { href: "/home", label: "Home", activeKey: "home" },
-  { href: "/products", label: "Products", activeKey: "products" },
-];
 
 // Reusable NavItem component
 const NavItem = ({ href, label, active, onClick, theme }) => (
@@ -38,10 +33,23 @@ const NavItem = ({ href, label, active, onClick, theme }) => (
 
 const TopNavbar = () => {
   const { theme } = useTheme();
+  const { auth } = useAuth();
   const [active, setActive] = useState("home");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
   const trimedPathname = pathname.split("/").pop();
+
+  // Define base navItems
+  const baseNavItems = [
+    { href: "/home", label: "Home", activeKey: "home" },
+    { href: "/products", label: "Products", activeKey: "products" },
+    { href: "/cart", label: "Cart", activeKey: "cart" },
+  ];
+
+  // Conditionally add Admin route if user is admin
+  const navItems = auth?.isAdmin
+    ? [...baseNavItems, { href: "/admin", label: "Admin", activeKey: "admin" }]
+    : baseNavItems;
 
   useEffect(() => {
     if (trimedPathname) {

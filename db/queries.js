@@ -1,18 +1,19 @@
-// db/queries.js
 import { userModel } from "@/models/user-model";
 import { productModel } from "@/models/product-model";
 import {
   replaceMongoIdInArray,
   replaceMongoIdInObject,
 } from "@/utils/data-util";
-import { Imprima } from "next/font/google";
+
 async function getAllUsers() {
   const allUsers = await userModel.find().lean();
   return replaceMongoIdInArray(allUsers);
 }
+
 async function createUser(user) {
   return await userModel.create(user);
 }
+
 async function findUserByCredentials(credentials) {
   const user = await userModel.findOne(credentials).lean();
   if (user) {
@@ -20,15 +21,25 @@ async function findUserByCredentials(credentials) {
   }
   return null;
 }
+
 async function updateUser(email, name, firstTimeLogin) {
   await userModel.updateOne(
     { email: email },
     { $set: { name: name, firstTimeLogin: firstTimeLogin } }
   );
 }
+
+async function updateCart(email, cart) {
+  await userModel.updateOne(
+    { email: email },
+    { $set: { cart: cart } }
+  );
+}
+
 async function changePassword(email, password) {
   await userModel.updateOne({ email: email }, { $set: { password: password } });
 }
+
 async function changePhoto(email, photo) {
   await userModel.updateOne({ email: email }, { $set: { photo: photo } });
 }
@@ -39,7 +50,19 @@ async function getAllProducts() {
 }
 
 async function createProduct(product) {
-  return await productModel.create(product);
+  const createdProduct = await productModel.create(product);
+  const plainProduct = createdProduct.toObject(); // Convert to plain object
+  return replaceMongoIdInObject(plainProduct); // Replace MongoDB _id
+}
+
+async function productExistsById(id) {
+  const product = await productModel.findOne({ id }).lean();
+  return !!product;
+}
+
+async function productExistsBySku(sku) {
+  const product = await productModel.findOne({ sku }).lean();
+  return !!product;
 }
 
 export {
@@ -51,4 +74,7 @@ export {
   updateUser,
   getAllProducts,
   createProduct,
+  productExistsById,
+  productExistsBySku,
+  updateCart,
 };
