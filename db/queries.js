@@ -1,9 +1,10 @@
-import { userModel } from "@/models/user-model";
-import { productModel } from "@/models/product-model";
+// db/queries.js
+import { userModel } from '@/models/user-model';
+import { productModel } from '@/models/product-model';
 import {
   replaceMongoIdInArray,
   replaceMongoIdInObject,
-} from "@/utils/data-util";
+} from '@/utils/data-util';
 
 async function getAllUsers() {
   const allUsers = await userModel.find().lean();
@@ -32,7 +33,7 @@ async function updateUser(email, name, firstTimeLogin) {
 async function updateCart(email, cart) {
   await userModel.updateOne(
     { email: email },
-    { $set: { cart: cart } }
+    { $set: { cart: cart, updatedAt: new Date() } }
   );
 }
 
@@ -51,8 +52,8 @@ async function getAllProducts() {
 
 async function createProduct(product) {
   const createdProduct = await productModel.create(product);
-  const plainProduct = createdProduct.toObject(); // Convert to plain object
-  return replaceMongoIdInObject(plainProduct); // Replace MongoDB _id
+  const plainProduct = createdProduct.toObject();
+  return replaceMongoIdInObject(plainProduct);
 }
 
 async function productExistsById(id) {
@@ -63,6 +64,10 @@ async function productExistsById(id) {
 async function productExistsBySku(sku) {
   const product = await productModel.findOne({ sku }).lean();
   return !!product;
+}
+
+async function productInventoryUpdate(id, inventory) {
+  await productModel.updateOne({ id: id }, { $set: { inventory: inventory } });
 }
 
 export {
@@ -77,4 +82,5 @@ export {
   productExistsById,
   productExistsBySku,
   updateCart,
+  productInventoryUpdate,
 };

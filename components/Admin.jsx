@@ -151,7 +151,7 @@ export default function Admin() {
   if (!auth?.isAdmin) {
     return (
       <div
-        className={`min-h-screen flex items-center justify-center ${
+        className={`mt-[15%] sm:mt-[10%] flex items-center justify-center ${
           theme ? "bg-[#ffffff] text-[#333333]" : "bg-[#000000] text-[#eeeeee]"
         }`}
       >
@@ -165,7 +165,7 @@ export default function Admin() {
   // Admin product creation form
   return (
     <div
-      className={`min-h-screen pt-[10%] px-[10%] py-[5%] ${
+      className={`mt-[15%] sm:mt-[10%] px-[10%] py-[5%] ${
         theme ? "bg-[#ffffff] text-[#333333]" : "bg-[#000000] text-[#eeeeee]"
       }`}
     >

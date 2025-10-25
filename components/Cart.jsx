@@ -1,106 +1,159 @@
 "use client";
+
 import { useTheme } from "@/app/hooks/useTheme";
 import { useAuth } from "@/app/hooks/useAuth";
-import { useEffect, useState } from "react";
-import { getAllProductsAction, callUpdateCart } from "@/app/actions";
+import { useResponse } from "@/app/hooks/useResponse";
+import { callUpdateCart, updateProductInventoryAction } from "@/app/actions";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function Cart() {
   const { theme } = useTheme();
-  const { auth } = useAuth();
-  // Initialize localCart from auth.cart, filtering invalid values
-  const [localCart, setLocalCart] = useState([]);
-  const [products, setProducts] = useState([]);
+  const { auth, setAuth } = useAuth();
+  const { products, setProducts } = useResponse(); // Use useResponse for products array
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [outOfStockMessage, setOutOfStockMessage] = useState("");
+  const [isUpdating, setIsUpdating] = useState({});
 
-  // Sync localCart with auth.cart when auth.cart changes
-  useEffect(() => {
-    const cart = Array.isArray(auth?.cart)
-      ? auth.cart.filter(
-          (item) =>
-            item &&
-            typeof item === "object" &&
-            "id" in item &&
-            typeof item.id === "number" &&
-            "quantity" in item &&
-            typeof item.quantity === "number" &&
-            "date" in item &&
-            typeof item.date === "string"
-        )
-      : [];
-    console.log("Cart: Syncing localCart with auth.cart:", {
-      authCart: auth?.cart,
-      localCart: cart,
-      itemCount: cart.length,
-    }); // Debug
-    setLocalCart(cart);
-  }, [auth?.cart]);
-
-  // Fetch products
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const fetchedProducts = await getAllProductsAction();
-        console.log("Cart: Fetched products:", fetchedProducts); // Debug
-        setProducts(fetchedProducts || []);
-      } catch (err) {
-        setError("Failed to load products.");
-        console.error("Cart: Error fetching products:", err); // Debug
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-
-  // Retry function for callUpdateCart
-  const retryCallUpdateCart = async (email, cartArray, retries = 3, delay = 500) => {
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        console.log(`Cart: Attempt ${attempt} to update cart for ${email}:`, cartArray); // Debug
-        await callUpdateCart(email, cartArray);
-        console.log("Cart: Database updated successfully:", cartArray); // Debug
-        return true;
-      } catch (error) {
-        console.error(`Cart: Attempt ${attempt} failed:`, {
-          message: error.message,
-          stack: error.stack,
-        }); // Debug
-        if (attempt === retries) {
-          throw new Error(`Failed to update cart after ${retries} attempts: ${error.message}`);
-        }
-        await new Promise((resolve) => setTimeout(resolve, delay)); // Wait before retry
-      }
+  const retryCallUpdateCart = async (email, cartArray) => {
+    try {
+      console.log("Cart: Updating cart in background for:", email, cartArray);
+      await callUpdateCart(email, cartArray);
+      console.log("Cart: Server cart updated successfully:", cartArray);
+    } catch (error) {
+      console.error("Cart: Server cart update failed:", {
+        message: error.message,
+        stack: error.stack,
+      });
+      setError("Failed to sync cart with server.");
+      setTimeout(() => setError(""), 3000);
     }
   };
 
-  const handleUpdateQuantity = async (productId, quantity) => {
+  const handleUpdateQuantity = (productId, quantity, action) => {
     if (quantity < 1) return;
     if (!auth?.email) {
       setError("Please log in to update the cart.");
-      console.error("Cart: No user logged in for update"); // Debug
+      console.error("Cart: No user logged in for update");
       return;
     }
+    if (isUpdating[`${productId}-${action}`]) return;
+    setIsUpdating((prev) => ({ ...prev, [`${productId}-${action}`]: true }));
     try {
-      const updatedCartArray = localCart.map((item) =>
+      const product = products.find((p) => p.id === Number(productId));
+      if (!product) {
+        setError("Product not found.");
+        console.error("Cart: Product not found for id:", productId);
+        return;
+      }
+      const isIncreasing = action === "increment";
+      if (isIncreasing && product.inventory <= 0) {
+        setOutOfStockMessage(`${product.name} out of stock`);
+        setTimeout(() => setOutOfStockMessage(""), 3000);
+        console.log("Cart: Out of stock for product:", product.name);
+        return;
+      }
+
+      // Client-side update: inventory
+      const inventoryChange = isIncreasing ? -1 : 1;
+      const newInventory = product.inventory + inventoryChange;
+      if (newInventory < 0) {
+        setError("Cannot update: insufficient inventory.");
+        console.error(
+          "Cart: Negative inventory prevented for product:",
+          productId
+        );
+        return;
+      }
+      setProducts(
+        products.map((p) =>
+          p.id === Number(productId) ? { ...p, inventory: newInventory } : p
+        )
+      );
+      console.log("Cart: Client-side inventory updated:", {
+        productId,
+        newInventory,
+        action,
+      });
+
+      // Client-side update: cart
+      const currentCart = Array.isArray(auth?.cart)
+        ? auth.cart.filter(
+            (item) =>
+              item &&
+              typeof item === "object" &&
+              "id" in item &&
+              typeof item.id === "number" &&
+              "quantity" in item &&
+              typeof item.quantity === "number" &&
+              "date" in item &&
+              typeof item.date === "string"
+          )
+        : [];
+      const updatedCartArray = currentCart.map((item) =>
         item.id === Number(productId)
-          ? { ...item, quantity, date: new Date().toISOString() }
+          ? {
+              ...item,
+              quantity,
+              date: new Date().toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              }),
+            }
           : item
       );
-      console.log("Cart: Updating quantity:", { productId, quantity, updatedCartArray }); // Debug
-      setLocalCart(updatedCartArray); // Update UI immediately
-      await retryCallUpdateCart(auth.email, updatedCartArray);
+      setAuth({ ...auth, cart: updatedCartArray });
+      console.log("Cart: Client-side cart updated:", {
+        productId,
+        quantity,
+        action,
+        updatedCartArray,
+      });
+
+      // Server update in background
+      updateProductInventoryAction(productId, newInventory).catch((err) => {
+        console.error("Cart: Server inventory update failed:", {
+          message: err.message,
+          stack: err.stack,
+          productId,
+          action,
+        });
+        setError("Failed to sync inventory with server.");
+        setTimeout(() => setError(""), 3000);
+      });
+      retryCallUpdateCart(auth.email, updatedCartArray);
     } catch (error) {
       console.error("Cart: Error updating cart item:", {
         message: error.message,
         stack: error.stack,
-      }); // Debug
+        productId,
+        action,
+      });
       setError(`Failed to update quantity: ${error.message}`);
-      // Revert localCart on failure
-      const cart = Array.isArray(auth?.cart)
+      setTimeout(() => setError(""), 3000);
+    } finally {
+      setIsUpdating((prev) => ({ ...prev, [`${productId}-${action}`]: false }));
+    }
+  };
+
+  const handleRemoveItem = (productId) => {
+    if (!auth?.email) {
+      setError("Please log in to update the cart.");
+      console.error("Cart: No user logged in for remove");
+      return;
+    }
+    if (isUpdating[`${productId}-remove`]) return;
+    setIsUpdating((prev) => ({ ...prev, [`${productId}-remove`]: true }));
+    try {
+      const product = products.find((p) => p.id === Number(productId));
+      if (!product) {
+        setError("Product not found.");
+        console.error("Cart: Product not found for id:", productId);
+        return;
+      }
+      const currentCart = Array.isArray(auth?.cart)
         ? auth.cart.filter(
             (item) =>
               item &&
@@ -113,69 +166,89 @@ export default function Cart() {
               typeof item.date === "string"
           )
         : [];
-      console.log("Cart: Reverting localCart on error:", cart); // Debug
-      setLocalCart(cart);
-    }
-  };
+      const currentItem = currentCart.find(
+        (item) => item.id === Number(productId)
+      );
+      if (!currentItem) {
+        setError("Item not found in cart.");
+        console.error("Cart: Item not found in cart for id:", productId);
+        return;
+      }
 
-  const handleRemoveItem = async (productId) => {
-    if (!auth?.email) {
-      setError("Please log in to update the cart.");
-      console.error("Cart: No user logged in for remove"); // Debug
-      return;
-    }
-    try {
-      const updatedCartArray = localCart.filter((item) => item.id !== Number(productId));
-      console.log("Cart: Removing item:", { productId, updatedCartArray }); // Debug
-      setLocalCart(updatedCartArray); // Update UI immediately
-      await retryCallUpdateCart(auth.email, updatedCartArray);
+      // Client-side update: inventory
+      const newInventory = product.inventory + currentItem.quantity;
+      setProducts(
+        products.map((p) =>
+          p.id === Number(productId) ? { ...p, inventory: newInventory } : p
+        )
+      );
+      console.log("Cart: Client-side inventory updated on remove:", {
+        productId,
+        newInventory,
+      });
+
+      // Client-side update: cart
+      const updatedCartArray = currentCart.filter(
+        (item) => item.id !== Number(productId)
+      );
+      setAuth({ ...auth, cart: updatedCartArray });
+      console.log("Cart: Client-side cart updated on remove:", {
+        productId,
+        updatedCartArray,
+      });
+
+      // Server update in background
+      updateProductInventoryAction(productId, newInventory).catch((err) => {
+        console.error("Cart: Server inventory update failed:", {
+          message: err.message,
+          stack: err.stack,
+          productId,
+        });
+        setError("Failed to sync inventory with server.");
+        setTimeout(() => setError(""), 3000);
+      });
+      retryCallUpdateCart(auth.email, updatedCartArray);
     } catch (error) {
       console.error("Cart: Error removing from cart:", {
         message: error.message,
         stack: error.stack,
-      }); // Debug
+        productId,
+      });
       setError(`Failed to remove item: ${error.message}`);
-      // Revert localCart on failure
-      const cart = Array.isArray(auth?.cart)
-        ? auth.cart.filter(
-            (item) =>
-              item &&
-              typeof item === "object" &&
-              "id" in item &&
-              typeof item.id === "number" &&
-              "quantity" in item &&
-              typeof item.quantity === "number" &&
-              "date" in item &&
-              typeof item.date === "string"
-          )
-        : [];
-      console.log("Cart: Reverting localCart on error:", cart); // Debug
-      setLocalCart(cart);
+      setTimeout(() => setError(""), 3000);
+    } finally {
+      setIsUpdating((prev) => ({ ...prev, [`${productId}-remove`]: false }));
     }
   };
 
   const getProductDetails = (productId) => {
     const product = products.find((product) => product.id === productId) || {};
-    console.log("Cart: Product details for id:", { productId, product }); // Debug
+    console.log("Cart: Product details for id:", { productId, product });
     return product;
   };
 
   const calculateTotal = () => {
-    const total = localCart.reduce((total, item) => {
-      const product = getProductDetails(item.id);
-      const price = product.discount > 0
-        ? product.price * (1 - product.discount / 100)
-        : product.price;
-      return total + (price || 0) * item.quantity;
-    }, 0).toFixed(2);
-    console.log("Cart: Calculated total:", { total, localCart }); // Debug
+    const total = (auth?.cart || [])
+      .reduce((total, item) => {
+        const product = getProductDetails(item.id);
+        const price =
+          product.discount > 0
+            ? product.price * (1 - product.discount / 100)
+            : product.price;
+        return total + (price || 0) * item.quantity;
+      }, 0)
+      .toFixed(2);
+    console.log("Cart: Calculated total:", { total, cart: auth?.cart });
     return total;
   };
 
-  const cartCount = localCart.reduce((sum, item) => sum + item.quantity, 0);
+  const cartCount = (auth?.cart || []).reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
 
   if (!auth?.email) {
-    console.log("Cart: No user logged in"); // Debug
+    console.log("Cart: No user logged in");
     return (
       <div
         className={`px-[10%] py-8 w-full ${
@@ -201,115 +274,291 @@ export default function Cart() {
 
   return (
     <div
-      className={`px-[10%] py-8 w-full ${
+      className={`px-[10%] py-8 mt-[15%] sm:mt-[10%] w-full relative ${
         theme ? "bg-[#ffffff] text-[#333333]" : "bg-[#000000] text-[#dddddd]"
       }`}
     >
       <h2 className="text-2xl font-bold mb-4">Your Cart ({cartCount})</h2>
       {error && (
-        <p className="text-red-600 mb-4">{error}</p>
+        <div
+          className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-md text-white bg-red-600 text-sm z-50`}
+        >
+          {error}
+        </div>
       )}
-      {loading ? (
-        <p>Loading...</p>
-      ) : localCart.length === 0 ? (
+      {outOfStockMessage && (
+        <div
+          className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-md text-white bg-red-600 text-sm z-50`}
+        >
+          {outOfStockMessage}
+        </div>
+      )}
+      {!auth.cart || auth.cart.length === 0 ? (
         <p>Your cart is empty.</p>
       ) : (
-        <div className="flex flex-col gap-4">
-          {localCart.map((item) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {auth.cart.map((item) => {
             if (!item.id || !item.quantity || !item.date) {
-              console.warn("Cart: Invalid cart item skipped:", item); // Debug
+              console.warn("Cart: Invalid cart item skipped:", item);
               return null;
             }
             const product = getProductDetails(item.id);
-            const discountedPrice = product.discount > 0
-              ? (product.price * (1 - product.discount / 100)).toFixed(2)
-              : product.price?.toFixed(2);
+            const discountedPrice =
+              product.discount > 0
+                ? (product.price * (1 - product.discount / 100)).toFixed(2)
+                : product.price?.toFixed(2);
             return (
-              <div
-                key={item.id}
-                className={`flex items-center gap-4 p-4 border-[1px] rounded-md ${
-                  theme ? "border-orange-800" : "border-orange-600"
-                }`}
-              >
-                <div className="relative w-24 h-24">
-                  <Image
-                    src={product.image || "/placeholder.jpg"}
-                    alt={product.name || "Product"}
-                    fill
-                    className="object-cover rounded-md"
-                  />
-                </div>
-                <div className="flex-grow">
-                  <h3 className="font-semibold">{product.name || "Unknown Product"}</h3>
-                  <p
-                    className={`text-sm ${
-                      theme ? "text-[#666666]" : "text-[#aaaaaa]"
-                    }`}
-                  >
-                    {product.discount > 0 ? (
-                      <>
-                        <span className="line-through">${product.price?.toFixed(2)}</span>{" "}
-                        <span className="text-red-600">${discountedPrice}</span> ({product.discount}% off)
-                      </>
-                    ) : (
-                      <span>${product.price?.toFixed(2)}</span>
-                    )}
-                  </p>
-                  <p className={`text-sm ${theme ? "text-[#666666]" : "text-[#aaaaaa]"}`}>
-                    Added: {new Date(item.date).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                    className={`px-2 py-1 rounded-md ${
-                      theme
-                        ? "bg-orange-600 text-white hover:bg-orange-700"
-                        : "bg-orange-500 text-white hover:bg-orange-600"
-                    }`}
-                    disabled={item.quantity <= 1}
-                  >
-                    -
-                  </button>
-                  <span>{item.quantity}</span>
-                  <button
-                    onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                    className={`px-2 py-1 rounded-md ${
-                      theme
-                        ? "bg-orange-600 text-white hover:bg-orange-700"
-                        : "bg-orange-500 text-white hover:bg-orange-600"
-                    }`}
-                  >
-                    +
-                  </button>
-                </div>
-                <button
-                  onClick={() => handleRemoveItem(item.id)}
-                  className={`text-sm px-4 py-2 rounded-md ${
-                    theme
-                      ? "bg-red-600 text-white hover:bg-red-700"
-                      : "bg-red-500 text-white hover:bg-red-600"
-                    }`}
+              <div key={item.id}>
+                <div
+                  className={`flex flex-col sm:items-center gap-4 p-4 border-[1px] sm:hidden rounded-md ${
+                    theme ? "border-orange-800" : "border-orange-600"
+                  }`}
                 >
-                  Remove
-                </button>
+                  <div className="relative w-full h-[150px] sm:w-24 sm:h-24 flex-shrink-0">
+                    <Image
+                      src={product.image || "/placeholder.jpg"}
+                      alt={product.name || "Product"}
+                      fill
+                      className="object-cover rounded-md"
+                    />
+                  </div>
+                  <div className="flex flex-col sm:flex sm:items-center sm:flex-grow gap-2 sm:gap-4">
+                    <div className="flex-grow">
+                      <h3 className="font-semibold">
+                        {product.name || "Unknown Product"}
+                      </h3>
+                      <p
+                        className={`text-sm ${
+                          theme ? "text-[#666666]" : "text-[#aaaaaa]"
+                        }`}
+                      >
+                        {product.discount > 0 ? (
+                          <>
+                            <span className="line-through">
+                              ${product.price?.toFixed(2)}
+                            </span>{" "}
+                            <span className="text-red-600">
+                              ${discountedPrice}
+                            </span>{" "}
+                            ({product.discount}% off)
+                          </>
+                        ) : (
+                          <span>${product.price?.toFixed(2)}</span>
+                        )}
+                      </p>
+                      <p
+                        className={`text-sm ${
+                          theme ? "text-[#666666]" : "text-[#aaaaaa]"
+                        }`}
+                      >
+                        Added: {item.date}
+                      </p>
+                      <p
+                        className={`text-sm ${
+                          theme ? "text-[#666666]" : "text-[#aaaaaa]"
+                        }`}
+                      >
+                        In Stock: {product.inventory || 0}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() =>
+                          handleUpdateQuantity(
+                            item.id,
+                            item.quantity - 1,
+                            "decrement"
+                          )
+                        }
+                        className={`px-2 py-1 rounded-md ${
+                          theme
+                            ? "bg-orange-600 text-white hover:bg-orange-700"
+                            : "bg-orange-500 text-white hover:bg-orange-600"
+                        } ${
+                          isUpdating[`${item.id}-decrement`]
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                        disabled={
+                          item.quantity <= 1 ||
+                          isUpdating[`${item.id}-decrement`]
+                        }
+                      >
+                        {isUpdating[`${item.id}-decrement`] ? "..." : "-"}
+                      </button>
+                      <span>{item.quantity}</span>
+                      <button
+                        onClick={() =>
+                          handleUpdateQuantity(
+                            item.id,
+                            item.quantity + 1,
+                            "increment"
+                          )
+                        }
+                        className={`px-2 py-1 rounded-md ${
+                          theme
+                            ? "bg-orange-600 text-white hover:bg-orange-700"
+                            : "bg-orange-500 text-white hover:bg-orange-600"
+                        } ${
+                          isUpdating[`${item.id}-increment`]
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                        disabled={isUpdating[`${item.id}-increment`]}
+                      >
+                        {isUpdating[`${item.id}-increment`] ? "..." : "+"}
+                      </button>
+                      <button
+                        onClick={() => handleRemoveItem(item.id)}
+                        className={`text-sm px-4 py-2 rounded-md ${
+                          theme
+                            ? "bg-red-600 text-white hover:bg-red-700"
+                            : "bg-red-500 text-white hover:bg-red-600"
+                        } ${
+                          isUpdating[`${item.id}-remove`]
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                        disabled={isUpdating[`${item.id}-remove`]}
+                      >
+                        {isUpdating[`${item.id}-remove`]
+                          ? "Removing..."
+                          : "Remove"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className={`sm:flex hidden items-center gap-4 p-4 border-[1px] rounded-md ${
+                    theme ? "border-orange-800" : "border-orange-600"
+                  }`}
+                >
+                  <div className="relative w-24 h-24">
+                    <Image
+                      src={product.image || "/placeholder.jpg"}
+                      alt={product.name || "Product"}
+                      fill
+                      className="object-cover rounded-md"
+                    />
+                  </div>
+                  <div className="flex-grow">
+                    <h3 className="font-semibold">
+                      {product.name || "Unknown Product"}
+                    </h3>
+                    <p
+                      className={`text-sm ${
+                        theme ? "text-[#666666]" : "text-[#aaaaaa]"
+                      }`}
+                    >
+                      {product.discount > 0 ? (
+                        <>
+                          <span className="line-through">
+                            ${product.price?.toFixed(2)}
+                          </span>{" "}
+                          <span className="text-red-600">
+                            ${discountedPrice}
+                          </span>{" "}
+                          ({product.discount}% off)
+                        </>
+                      ) : (
+                        <span>${product.price?.toFixed(2)}</span>
+                      )}
+                    </p>
+                    <p
+                      className={`text-sm ${
+                        theme ? "text-[#666666]" : "text-[#aaaaaa]"
+                      }`}
+                    >
+                      Added: {item.date}
+                    </p>
+                    <p
+                      className={`text-sm ${
+                        theme ? "text-[#666666]" : "text-[#aaaaaa]"
+                      }`}
+                    >
+                      In Stock: {product.inventory || 0}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() =>
+                        handleUpdateQuantity(
+                          item.id,
+                          item.quantity - 1,
+                          "decrement"
+                        )
+                      }
+                      className={`px-2 py-1 rounded-md ${
+                        theme
+                          ? "bg-orange-600 text-white hover:bg-orange-700"
+                          : "bg-orange-500 text-white hover:bg-orange-600"
+                      } ${
+                        isUpdating[`${item.id}-decrement`]
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      }`}
+                      disabled={
+                        item.quantity <= 1 || isUpdating[`${item.id}-decrement`]
+                      }
+                    >
+                      {isUpdating[`${item.id}-decrement`] ? "..." : "-"}
+                    </button>
+                    <span>{item.quantity}</span>
+                    <button
+                      onClick={() =>
+                        handleUpdateQuantity(
+                          item.id,
+                          item.quantity + 1,
+                          "increment"
+                        )
+                      }
+                      className={`px-2 py-1 rounded-md ${
+                        theme
+                          ? "bg-orange-600 text-white hover:bg-orange-700"
+                          : "bg-orange-500 text-white hover:bg-orange-600"
+                      } ${
+                        isUpdating[`${item.id}-increment`]
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      }`}
+                      disabled={isUpdating[`${item.id}-increment`]}
+                    >
+                      {isUpdating[`${item.id}-increment`] ? "..." : "+"}
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveItem(item.id)}
+                    className={`text-sm px-4 py-2 rounded-md ${
+                      theme
+                        ? "bg-red-600 text-white hover:bg-red-700"
+                        : "bg-red-500 text-white hover:bg-red-600"
+                    } ${
+                      isUpdating[`${item.id}-remove`]
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
+                    disabled={isUpdating[`${item.id}-remove`]}
+                  >
+                    {isUpdating[`${item.id}-remove`] ? "Removing..." : "Remove"}
+                  </button>
+                </div>
               </div>
             );
           })}
-          <div className="mt-4">
-            <p className="text-lg font-semibold">Total: ${calculateTotal()}</p>
-            <button
-              className={`mt-4 px-4 py-2 rounded-md ${
-                theme
-                  ? "bg-orange-600 text-white hover:bg-orange-700"
-                  : "bg-orange-500 text-white hover:bg-orange-600"
-              }`}
-            >
-              Proceed to Checkout
-            </button>
-          </div>
         </div>
       )}
+      <div className="mt-4">
+        <p className="text-lg font-semibold">Total: ${calculateTotal()}</p>
+        <button
+          className={`mt-4 px-4 py-2 rounded-md ${
+            theme
+              ? "bg-orange-600 text-white hover:bg-orange-700"
+              : "bg-orange-500 text-white hover:bg-orange-600"
+          }`}
+        >
+          Proceed to Checkout
+        </button>
+      </div>
     </div>
   );
 }

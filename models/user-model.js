@@ -10,6 +10,7 @@ const UserSchema = new mongoose.Schema(
     cart: { type: Array, default: [] },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
+    isAdmin: {type: Boolean, default: false}
   },
   { versionKey: false } // Disable __v for the document
 );
