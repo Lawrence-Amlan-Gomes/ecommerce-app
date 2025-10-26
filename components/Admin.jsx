@@ -3,8 +3,13 @@ import { useAuth } from "@/app/hooks/useAuth";
 import { useTheme } from "@/app/hooks/useTheme";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { createProductAction, checkProductById, checkProductBySku } from "@/app/actions";
+import {
+  createProductAction,
+  checkProductById,
+  checkProductBySku,
+} from "@/app/actions";
 import Image from "next/image";
+import { FaCartShopping } from "react-icons/fa6";
 
 export default function Admin() {
   const { auth } = useAuth();
@@ -83,8 +88,16 @@ export default function Admin() {
     setSuccess("");
 
     // Validate required fields
-    if (!formData.id || !formData.name || !formData.price || !formData.inventory || !formData.sku) {
-      setError("Please fill in all required fields (ID, Name, Price, Inventory, SKU).");
+    if (
+      !formData.id ||
+      !formData.name ||
+      !formData.price ||
+      !formData.inventory ||
+      !formData.sku
+    ) {
+      setError(
+        "Please fill in all required fields (ID, Name, Price, Inventory, SKU)."
+      );
       return;
     }
 
@@ -274,21 +287,17 @@ export default function Admin() {
                     Uploading...
                   </div>
                 ) : formData.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={formData.image}
                     alt="Product preview"
                     className="w-full h-full object-cover"
                   />
                 ) : (
                   <div className="h-full w-full relative">
-                    <Image
-                      priority
-                      src={theme ? "/profileIconLight.png" : "/profileIconDark.png"}
-                      alt={theme ? "Placeholder Light" : "Placeholder Dark"}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 30vw"
-                      className="object-cover"
+                    <FaCartShopping
+                      className={`text-lg w-full h-full p-20 sm:text-xl lg:text-2xl ${
+                        theme ? "text-[#222222]" : "text-[#dadada]"
+                      }`}
                     />
                   </div>
                 )}

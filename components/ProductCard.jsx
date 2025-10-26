@@ -228,7 +228,7 @@ export default function ProductCard({
                 theme ? 'border-[#dddddd]' : 'border-[#222222]'
               }`}
             >
-              <Link href='/products'>
+              <Link href={`/product/${id}`} className='block w-full h-full'>
                 <motion.div
                   whileHover={{ scale: 1.1 }}
                   transition={{ duration: 0.3, ease: 'easeOut' }}

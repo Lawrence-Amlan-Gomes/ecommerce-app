@@ -17,8 +17,8 @@ const roboto = Roboto({
 });
 
 export const metadata = {
-  title: "E-commerce",
-  description: "E-commerce",
+  title: "mobile-commerce",
+  description: "mobile-commerce",
   icons: {
     icon: ["/favicon.ico?v=4"],
     apple: ["/apple-touch-icon.png?v=4"],

@@ -29,14 +29,6 @@ export default function Products() {
             >
               All Products
             </h1>
-            <div
-              className="flex-grow h-[1px]"
-              style={{
-                backgroundImage: theme
-                  ? "linear-gradient(to right, rgba(51, 51, 51, 0), rgba(51, 51, 51, 1))"
-                  : "linear-gradient(to right, rgba(221, 221, 221, 0), rgba(221, 221, 221, 0.4))",
-              }}
-            />
           </div>
           <p
             className={`text-base lg:text-md w-full md:w-[100%] mt-2 ${

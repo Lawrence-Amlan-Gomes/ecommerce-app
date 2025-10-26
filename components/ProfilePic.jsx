@@ -101,8 +101,7 @@ export default function ProfilePic() {
               Uploading...
             </div>
           ) : image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={image}
               alt="profilepic"
               className="w-full h-full object-cover"

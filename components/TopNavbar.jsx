@@ -82,7 +82,7 @@ const TopNavbar = () => {
               theme ? 'text-[#222222]' : 'text-[#dadada]'
             }`}
           >
-            E-Commerce
+            Mobile-Commerce
           </div>
         </Link>
 
@@ -121,7 +121,7 @@ const TopNavbar = () => {
               theme ? 'text-[#222222]' : 'text-[#dadada]'
             }`}
           >
-            E-Commerce
+            Mobile-Commerce
           </div>
         </Link>
 

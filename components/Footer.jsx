@@ -13,7 +13,7 @@ function Footer() {
       }`}
     >
       <span className="text-xs sm:text-sm">
-        © {new Date().getFullYear()} E-Commerce. All rights reserved.
+        © {new Date().getFullYear()} Mobile-Commerce. All rights reserved.
       </span>
     </footer>
   );
