@@ -5,6 +5,8 @@ import { useTheme } from '@/app/hooks/useTheme';
 import { useAuth } from '@/app/hooks/useAuth';
 import { FaCartShopping } from 'react-icons/fa6';
 import Link from 'next/link';
+import { color } from 'framer-motion';
+import colors from '@/app/color/color';
 
 export default function CartIcon() {
   const { theme } = useTheme();
@@ -30,9 +32,7 @@ export default function CartIcon() {
         />
         {cartCount > 0 && (
           <span
-            className={`absolute -top-2 -right-2 text-xs sm:text-sm font-semibold rounded-full h-4 sm:h-5 w-4 sm:w-5 flex items-center justify-center ${
-              theme ? 'bg-orange-600 text-white' : 'bg-orange-500 text-white'
-            }`}
+            className={`absolute -top-2 -right-2 text-xs sm:text-sm font-semibold rounded-full h-4 sm:h-5 w-4 sm:w-5 flex items-center justify-center ${colors.keyColorBg} text-white`}
           >
             {cartCount}
           </span>

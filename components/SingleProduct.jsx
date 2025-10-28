@@ -17,10 +17,8 @@ export default function SingleProduct({ id }) {
   const [outOfStockMessage, setOutOfStockMessage] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
-  // Convert id to number for consistency with schema
   const product = products.find((p) => p.id === Number(id));
 
-  // Handle product not found
   if (!product) {
     return (
       <div
@@ -35,12 +33,20 @@ export default function SingleProduct({ id }) {
     );
   }
 
-  // Add to cart functionality (adapted from ProductCard)
-  const handleAddToCart = () => {
+  // === TOGGLE CART LOGIC (unchanged) ===
+  const getCartQuantity = () => {
+    if (!auth?.cart || !Array.isArray(auth.cart)) return 0;
+    const item = auth.cart.find((item) => item.id === Number(id));
+    return item?.quantity || 0;
+  };
+
+  const isInCart = getCartQuantity() > 0;
+
+  const handleToggleCart = async () => {
     if (isAdding) return;
 
     if (!auth?.email) {
-      setError("Please log in to add items to your cart.");
+      setError("Please log in to manage your cart.");
       setTimeout(() => setError(""), 3000);
       return;
     }
@@ -54,266 +60,249 @@ export default function SingleProduct({ id }) {
 
     setIsAdding(true);
     try {
-      if (product.inventory <= 0) {
-        setOutOfStockMessage(`${product.name} is out of stock`);
-        setTimeout(() => setOutOfStockMessage(""), 3000);
-        console.log("SingleProduct: Out of stock for product:", product.name);
-        return;
+      const currentQuantity = getCartQuantity();
+      let newQuantity, newInventory;
+
+      if (isInCart) {
+        newQuantity = currentQuantity > 1 ? currentQuantity - 1 : 0;
+        newInventory = product.inventory + 1;
+      } else {
+        if (product.inventory <= 0) {
+          setOutOfStockMessage(`${product.name} is out of stock`);
+          setTimeout(() => setOutOfStockMessage(""), 3000);
+          return;
+        }
+        newQuantity = 1;
+        newInventory = product.inventory - 1;
+        if (newInventory < 0) {
+          setError("Cannot add: insufficient inventory.");
+          console.error("SingleProduct: Negative inventory prevented:", id);
+          setTimeout(() => setError(""), 3000);
+          return;
+        }
       }
 
-      // Client-side update: decrease inventory
-      const newInventory = product.inventory - 1;
-      if (newInventory < 0) {
-        setError("Cannot add: insufficient inventory.");
-        console.error(
-          "SingleProduct: Negative inventory prevented for product:",
-          id
-        );
-        setTimeout(() => setError(""), 3000);
-        return;
-      }
       setProducts(
         products.map((p) =>
           p.id === Number(id) ? { ...p, inventory: newInventory } : p
         )
       );
-      console.log("SingleProduct: Client-side inventory updated:", {
-        id,
-        newInventory,
-      });
 
-      // Client-side update: update cart
-      const currentCart = Array.isArray(auth?.cart)
-        ? auth.cart.filter(
-            (item) =>
-              item &&
-              typeof item === "object" &&
-              "id" in item &&
-              typeof item.id === "number" &&
-              "quantity" in item &&
-              typeof item.quantity === "number" &&
-              "date" in item &&
-              typeof item.date === "string"
-          )
-        : [];
-      const cartItemIndex = currentCart.findIndex(
-        (item) => item.id === Number(id)
-      );
       let updatedCartArray;
-      if (cartItemIndex > -1) {
-        updatedCartArray = currentCart.map((item, index) =>
-          index === cartItemIndex
-            ? {
-                ...item,
-                quantity: item.quantity + 1,
-                date: new Date().toLocaleDateString("en-GB", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                }),
-              }
-            : item
-        );
+      if (newQuantity === 0) {
+        updatedCartArray = auth.cart.filter((item) => item.id !== Number(id));
       } else {
-        updatedCartArray = [
-          ...currentCart,
-          {
-            id: Number(id),
-            quantity: 1,
-            date: new Date().toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "long",
-              year: "numeric",
-            }),
-          },
-        ];
+        const existingIndex = auth.cart.findIndex((item) => item.id === Number(id));
+        const newItem = {
+          id: Number(id),
+          quantity: newQuantity,
+          date: new Date().toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+          }),
+        };
+        if (existingIndex > -1) {
+          updatedCartArray = auth.cart.map((item, idx) =>
+            idx === existingIndex ? newItem : item
+          );
+        } else {
+          updatedCartArray = [...auth.cart, newItem];
+        }
       }
-      setAuth({ ...auth, cart: updatedCartArray });
-      console.log("SingleProduct: Client-side cart updated:", updatedCartArray);
 
-      // Server update in background
+      setAuth({ ...auth, cart: updatedCartArray });
+
       updateProductInventoryAction(id, newInventory).catch((err) => {
-        console.error("SingleProduct: Server inventory update failed:", {
-          message: err.message,
-          stack: err.stack,
-          id,
-        });
-        setError("Failed to sync inventory with server.");
+        console.error("SingleProduct: Server inventory sync failed:", err);
+        setError("Failed to sync inventory.");
         setTimeout(() => setError(""), 3000);
       });
+
       callUpdateCart(auth.email, updatedCartArray).catch((err) => {
-        console.error("SingleProduct: Server cart update failed:", {
-          message: err.message,
-          stack: err.stack,
-          id,
-        });
-        setError("Failed to sync cart with server.");
+        console.error("SingleProduct: Server cart sync failed:", err);
+        setError("Failed to sync cart.");
         setTimeout(() => setError(""), 3000);
       });
     } catch (error) {
-      console.error("SingleProduct: Error adding to cart:", {
-        message: error.message,
-        stack: error.stack,
-        id,
-      });
-      setError(`Failed to add to cart: ${error.message}`);
+      console.error("SingleProduct: Cart toggle error:", error);
+      setError(`Failed to update cart: ${error.message}`);
       setTimeout(() => setError(""), 3000);
     } finally {
       setIsAdding(false);
     }
   };
 
-  // Calculate discounted price
   const discountedPrice =
     product.discount > 0
       ? (product.price * (1 - product.discount / 100)).toFixed(2)
       : null;
 
+  // === CLEAN DESCRIPTION: NO /n, NO \n VISIBLE ===
+  const cleanDescription = product.description
+    .replace(/\/n/g, "")
+    .replace(/\\n/g, "\n")
+    .replace(/\r\n/g, "\n")
+    .replace(/\n+/g, "\n")
+    .trim();
+
+  const descriptionLines = cleanDescription
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
+
   return (
     <div
-      className={`w-full pt-[20%] sm:pt-[13%] ${
-        theme ? "bg-[#ffffff] text-[#aaaaaa]" : "bg-[#000000] text-[#eeeeee]"
+      className={`w-full pt-[20%] sm:pt-[10%] md:pt-[8%] ${
+        theme ? "bg-[#ffffff]" : "bg-[#000000]"
       }`}
     >
-      <div className="w-[90%] sm:w-[80%] md:w-[60%] mx-auto mb-[5%] px-[5%] sm:px-0 relative">
-        {/* Error and Out of Stock Messages */}
-        {error && (
-          <div
-            className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-md text-white bg-red-600 text-sm z-50`}
-          >
-            {error}
+      <div className="w-[95%] sm:w-[90%] md:w-[85%] lg:w-[80%] mx-auto px-4 mb-[5%] sm:px-0">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 lg:gap-12">
+          {/* IMAGE – 40% */}
+          <div className="md:col-span-2">
+            <div
+              className={`relative overflow-hidden border-[1px] rounded-2xl ${
+                theme ? "border-orange-800" : "border-orange-700"
+              }`}
+            >
+              <Image
+                src={product.image || "/placeholder-image.jpg"}
+                alt={product.name}
+                width={1200}
+                height={800}
+                className="w-full h-auto object-cover rounded-2xl"
+                priority
+                quality={95}
+              />
+            </div>
           </div>
-        )}
-        {outOfStockMessage && (
-          <div
-            className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-md text-white bg-red-600 text-sm z-50`}
-          >
-            {outOfStockMessage}
-          </div>
-        )}
 
-        {/* Product Header */}
-        <div className="mb-12">
-          <div
-            className={`flex items-center mb-5 gap-4 ${
-              theme ? "text-[#333333]" : "text-[#dddddd]"
-            }`}
-          >
+          {/* DETAILS – 60% */}
+          <div className="md:col-span-3 flex flex-col">
+            {/* Back Button – Desktop */}
+            <div className="hidden md:block mb-4">
+              <Link
+                href="/products"
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  theme
+                    ? "bg-[#ffffff] text-[#0a0a0a] border border-orange-800 hover:bg-orange-800 hover:text-white"
+                    : "bg-[#1a1a1a] text-[#ebebeb] border border-orange-700 hover:bg-orange-700 hover:text-white"
+                }`}
+              >
+                <FaArrowLeft /> Back to Products
+              </Link>
+            </div>
+
+            {/* TITLE: 14px (mobile), 18px (desktop) */}
             <h1
-              className={`text-3xl sm:text-4xl lg:text-5xl tracking-wide font-bold mb-2 ${
+              className={`font-bold mb-3 tracking-wide text-[16px] md:text-[20px] ${
                 theme ? "text-[#333333]" : "text-[#dddddd]"
               }`}
             >
               {product.name}
             </h1>
-          </div>
-          {/* Product Details */}
-          <div className="flex flex-col gap-2">
-            <p
-              className={`text-sm sm:text-base lg:text-md ${
-                theme ? "text-[#666666]" : "text-[#aaaaaa]"
-              }`}
-            >
-              {product.description}
-            </p>
-            <p
-              className={`text-sm sm:text-base lg:text-md ${
-                theme ? "text-[#666666]" : "text-[#aaaaaa]"
-              }`}
-            >
-              {product.discount > 0 ? (
-                <>
-                  <span className="line-through">${product.price.toFixed(2)}</span>{" "}
-                  <span className="text-red-600">${discountedPrice}</span> (
-                  {product.discount}% off)
-                </>
-              ) : (
-                <span>${product.price.toFixed(2)}</span>
-              )}
-            </p>
-            <p
-              className={`text-sm sm:text-base lg:text-md ${
-                theme ? "text-[#666666]" : "text-[#aaaaaa]"
-              }`}
-            >
-              In Stock: {product.inventory}
-            </p>
-            {product.category && (
+
+            {/* DESCRIPTION: 12px (mobile), 16px (desktop) */}
+            <div className="mb-4">
               <p
-                className={`text-sm sm:text-base lg:text-md ${
+                className={`leading-relaxed text-[12px] md:text-[16px] ${
                   theme ? "text-[#666666]" : "text-[#aaaaaa]"
                 }`}
               >
-                Category: {product.category}
+                {descriptionLines.map((line, i) => (
+                  <span key={i}>
+                    {line}
+                    {i < descriptionLines.length - 1 && <br />}
+                  </span>
+                ))}
               </p>
-            )}
-            <p
-              className={`text-sm sm:text-base lg:text-md ${
-                theme ? "text-[#666666]" : "text-[#aaaaaa]"
-              }`}
-            >
-              SKU: {product.sku}
-            </p>
-          </div>
-          {/* Add to Cart Button */}
-          <button
-            onClick={handleAddToCart}
-            className={`text-sm px-4 py-2 rounded-md mt-4 w-fit ${
-              theme
-                ? "bg-orange-600 text-white hover:bg-orange-700"
-                : "bg-orange-500 text-white hover:bg-orange-600"
+            </div>
+
+            {/* PRICE & META: 12px (mobile), 16px (desktop) */}
+            <div className="space-y-1 mb-5">
+              <p
+                className={`font-medium text-[12px] md:text-[16px] ${
+                  theme ? "text-[#333333]" : "text-[#dddddd]"
+                }`}
+              >
+                {product.discount > 0 ? (
+                  <>
+                    <span className="line-through text-[#999999] mr-2">
+                      ${product.price.toFixed(2)}
+                    </span>
+                    <span className="text-red-600">${discountedPrice}</span>
+                    <span className="text-green-600 ml-2 text-[10px] md:text-[14px]">
+                      ({product.discount}% off)
+                    </span>
+                  </>
+                ) : (
+                  <span>${product.price.toFixed(2)}</span>
+                )}
+              </p>
+
+              <p className={`text-[12px] md:text-[16px] ${theme ? "text-[#666666]" : "text-[#aaaaaa]"}`}>
+                <strong>In Stock:</strong> {product.inventory}
+              </p>
+
+              {product.category && (
+                <p className={`text-[12px] md:text-[16px] ${theme ? "text-[#666666]" : "text-[#aaaaaa]"}`}>
+                  <strong>Category:</strong> {product.category}
+                </p>
+              )}
+
+              <p className={`text-[12px] md:text-[16px] ${theme ? "text-[#666666]" : "text-[#aaaaaa]"}`}>
+                <strong>SKU:</strong> {product.sku}
+              </p>
+            </div>
+
+            {/* TOGGLE BUTTON */}
+            <button
+              onClick={handleToggleCart}
+              disabled={isAdding}
+              className={`w-full sm:w-auto px-6 py-3 rounded-lg font-medium text-white transition-all text-[12px] md:text-[14px] ${
+                isInCart
+                  ? "bg-red-600 hover:bg-red-700"
+                  : theme
+                  ? "bg-orange-600 hover:bg-orange-700"
+                  : "bg-orange-500 hover:bg-orange-600"
               } ${isAdding ? "opacity-50 cursor-not-allowed" : ""}`}
-            disabled={isAdding}
-          >
-            {isAdding ? "Adding..." : "Add to Cart"}
-          </button>
-        </div>
+            >
+              {isAdding
+                ? "Updating..."
+                : isInCart
+                ? `Remove from Cart (${getCartQuantity()})`
+                : "Add to Cart"}
+            </button>
 
-        {/* Product Image */}
-        <div className="mb-12">
-          <div
-            className={`relative p-0 overflow-hidden border-[1px] mb-3 rounded-2xl ${
-              theme ? "border-orange-800" : "border-orange-700"
-            }`}
-          >
-            <Image
-              src={product.image || "/placeholder-image.jpg"} // Fallback image
-              alt={product.name}
-              width={1200}
-              height={600}
-              className="w-full h-auto object-cover rounded-lg"
-            />
+            {/* Back Button – Mobile */}
+            <div className="md:hidden mt-5">
+              <Link
+                href="/products"
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-[12px] sm:text-[16px] font-medium transition-all ${
+                  theme
+                    ? "bg-[#ffffff] text-[#0a0a0a] border border-orange-800 hover:bg-orange-800 hover:text-white"
+                    : "bg-[#1a1a1a] text-[#ebebeb] border border-orange-700 hover:bg-orange-700 hover:text-white"
+                }`}
+              >
+                <FaArrowLeft /> Back to Products
+              </Link>
+            </div>
           </div>
         </div>
 
-        {/* Navigation Buttons */}
-        <div className="fixed right-[5%] md:right-[11%] top-[11%] sm:top-[15%] md:top-[33%] transform -translate-y-1/2 flex flex-row gap-3 md:flex-col sm:gap-4 z-50">
-          <Link
-            href="/products"
-            className={`p-2 sm:p-3 rounded-full text-lg sm:text-xl md:hidden block ${
-              theme
-                ? "bg-[#ffffff] text-[#0a0a0a] border-[1px] border-orange-800 hover:bg-orange-800 hover:text-[#ffffff]"
-                : "bg-[#1a1a1a] text-[#ebebeb] border-[1px] border-orange-700 hover:bg-orange-700 hover:text-[#ffffff]"
+        {/* TOAST MESSAGES */}
+        {(error || outOfStockMessage) && (
+          <div
+            className={`fixed top-4 left-1/2 transform -translate-x-1/2 px-5 py-3 rounded-lg text-white text-sm font-medium shadow-lg z-50 transition-all animate-pulse ${
+              error ? "bg-red-600" : "bg-orange-600"
             }`}
-            title="Back to Products"
           >
-            <FaArrowLeft />
-          </Link>
-        </div>
-        <div className="md:fixed hidden left-[26%] sm:left-[4%] top-[11%] sm:top-[20%] transform -translate-y-1/2 md:flex flex-col gap-3 sm:gap-4 z-50">
-          <Link
-            href="/products"
-            className={`p-2 sm:p-3 rounded-full text-lg sm:text-xl ${
-              theme
-                ? "bg-[#ffffff] text-[#0a0a0a] border-[1px] border-orange-800 hover:bg-orange-800 hover:text-[#ffffff]"
-                : "bg-[#1a1a1a] text-[#ebebeb] border-[1px] border-orange-700 hover:bg-orange-700 hover:text-[#ffffff]"
-            }`}
-            title="Back to Products"
-          >
-            <FaArrowLeft />
-          </Link>
-        </div>
+            {error || outOfStockMessage}
+          </div>
+        )}
       </div>
+
       <Footer />
     </div>
   );

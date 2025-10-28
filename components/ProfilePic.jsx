@@ -4,6 +4,7 @@ import { useAuth } from "@/app/hooks/useAuth";
 import { useTheme } from "@/app/hooks/useTheme";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import colors from "@/app/color/color";
 
 export default function ProfilePic() {
   const { theme } = useTheme();
@@ -86,10 +87,8 @@ export default function ProfilePic() {
     <div className="w-full mt-5 relative">
       <div className="w-full flex items-center justify-center relative">
         <div
-          className={`sm:w-[150px] w-[100px] sm:h-[150px] h-[100px] rounded-xl border-[1px] overflow-hidden flex items-center justify-center relative cursor-pointer ${
-            theme ? "border-orange-700" : "border-orange-700"
-          }
-          }`}
+          className={`sm:w-[150px] w-[100px] sm:h-[150px] h-[100px] rounded-xl border-[1px] overflow-hidden flex items-center justify-center relative cursor-pointer ${colors.keyColorBorder}
+          `}
           onClick={() => setEditPic((prev) => !prev)}
         >
           {isUploading ? ( // 🔄 Show uploading message
@@ -101,11 +100,15 @@ export default function ProfilePic() {
               Uploading...
             </div>
           ) : image ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <Image
-              src={image}
-              alt="profilepic"
-              className="w-full h-full object-cover"
-            />
+                priority
+                src={image}
+                alt={theme ? "Proflie Icon Light" : "Proflie Icon Dark"}
+                className="object-cover"
+                width={500}
+                height={500}
+              />
           ) : (
             <div className={` h-full w-full relative`}>
               {" "}
@@ -134,7 +137,7 @@ export default function ProfilePic() {
           />
           <button
             type="button"
-            className={`sm:py-2 py-1 text-orange-700 text-[12px] sm:text-[16px] rounded-lg border-[2px] border-orange-700 px-3 w-[56%] m-[2%] box-border float-left ${
+            className={`sm:py-2 py-1 ${colors.keyColorText} text-[12px] sm:text-[16px] rounded-lg border-[2px] ${colors.keyColorBorder} px-3 w-[56%] m-[2%] box-border float-left ${
               theme ? "" : ""
             }`}
             onClick={handleImageClick}

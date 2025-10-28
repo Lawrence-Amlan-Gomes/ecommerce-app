@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import ProfileIcon from './ProfileIcon';
 import ToogleTheme from './ToogleTheme';
 import CartIcon from './CartIcon';
+import colors from '@/app/color/color';
 
 // Reusable NavItem component
 const NavItem = ({ href, label, active, onClick, theme }) => (
@@ -21,10 +22,10 @@ const NavItem = ({ href, label, active, onClick, theme }) => (
         className={`sm:text-[15px] font-sans tracking-wider ${
           theme
             ? active
-              ? 'text-orange-800'
+              ? colors.keyColorText
               : 'text-[#555555] hover:text-[#000000]'
             : active
-            ? 'text-orange-600'
+            ? colors.keyColorText
             : 'text-[#cccccc] hover:text-[#ffffff]'
         } `}
       >
@@ -117,7 +118,7 @@ const TopNavbar = () => {
         {/* Logo */}
         <Link href='/home'>
           <div
-            className={`text-lg font-bold tracking-wide ${
+            className={`text-[12px] font-bold tracking-wide ${
               theme ? 'text-[#222222]' : 'text-[#dadada]'
             }`}
           >
@@ -131,7 +132,7 @@ const TopNavbar = () => {
           <ToogleTheme />
           <button
             onClick={toggleMenu}
-            className={`ml-2 focus:outline-none ${
+            className={`focus:outline-none ${
               theme ? 'text-[#222222]' : 'text-[#dadada]'
             }`}
           >

@@ -55,7 +55,9 @@ const ProfileIcon = ({ active }) => {
                   ? `${auth.name || "User"}'s profile picture`
                   : "Profile Icon"
               }
-              fill
+              objectFit="cover"
+              width={5000}
+              height={5000}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 30vw"
               className="object-cover"
               onError={() => setImgError(true)}

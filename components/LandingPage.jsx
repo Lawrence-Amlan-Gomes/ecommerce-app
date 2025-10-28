@@ -6,11 +6,12 @@ import { getAllProductsAction } from "@/app/actions";
 import ProductCard from "./ProductCard";
 import Link from "next/link";
 import Footer from "./Footer";
+import colors from "@/app/color/color";
 
 export default function LandingPage() {
   const { theme } = useTheme();
   const { products, setProducts } = useResponse();
-  const [numProducts, setNumProducts] = useState(9);
+  const [numProducts, setNumProducts] = useState(12);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -21,7 +22,7 @@ export default function LandingPage() {
       } else if (window.innerWidth < 1024) {
         setNumProducts(6); // Tablet: show 6
       } else {
-        setNumProducts(9); // Laptop: show 9
+        setNumProducts(12); // Laptop: show 9
       }
     };
 
@@ -60,45 +61,29 @@ export default function LandingPage() {
   return (
     <>
       <div
-        className={`px-[10%] mt-[15%] sm:mt-[10%] sm:px-[15%] mb-[5%] pb-[5%] w-full ${
+        className={`px-[10%] mt-[20%] sm:mt-[10%] sm:px-[10%] mb-[5%] pb-[5%] w-full ${
           theme ? "bg-[#ffffff] text-[#aaaaaaa]" : "bg-[#000000] text-[#eeeeee]"
         }`}
       >
-        <div className="mb-8">
-          <div
-            className={`flex items-center mb-5 gap-4 ${
-              theme ? "text-[#333333]" : "text-[#dddddd]"
-            }`}
-          >
-            <h1
-              className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-2 ${
-                theme ? "text-[#333333]" : "text-[#dddddd]"
-              }`}
-            >
-              Welcome to Our Store
-            </h1>
+        <div className="mb-5">
+          <div className={`${colors.keyColorBg} p-4 rounded-md`}>
+            <h2 className="text-md text-center font-semibold md:text-xl flex justify-center items-center lg:text-2xl xl:text-3xl 2xl:text-5xl text-white">
+              Welcome to Our Store! Discover Amazing Products Below.
+            </h2>
           </div>
-          <p
-            className={`text-base lg:text-md w-full md:w-[100%] mt-2 ${
-              theme ? "text-[#666666]" : "text-[#aaaaaa]"
-            }`}
-          >
-            Discover our latest products! Check back often for new arrivals and
-            exclusive deals.
-          </p>
         </div>
         {error ? (
           <div className="container mx-auto p-4 text-center text-red-600">
             {error}
           </div>
         ) : products.length === 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             {Array.from({ length: numProducts }).map((_, index) => (
               <ProductCard key={`loading-${index}`} loading={true} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             {products.slice(0, numProducts).map((product) => (
               <ProductCard
                 key={product.id}
@@ -115,11 +100,7 @@ export default function LandingPage() {
         <div className="flex justify-center mt-8">
           <Link href="/products">
             <div
-              className={`px-4 py-2 rounded-md text-sm sm:text-[15px] font-medium hover:cursor-pointer ${
-                theme
-                  ? "bg-orange-800 text-[#ffffff] hover:bg-white border-[1px] border-orange-800 hover:text-orange-800"
-                  : "bg-orange-700 text-[#ffffff] hover:bg-black border-[1px] border-orange-600 hover:text-orange-600"
-              }`}
+              className={`px-4 py-2 rounded-md text-sm sm:text-[15px] font-medium hover:cursor-pointer border-[1px] text-white ${colors.keyColorBorder} ${colors.keyColorBg} ${colors.keyColortTextHover} hover:bg-transparent`}
             >
               View All Products
             </div>

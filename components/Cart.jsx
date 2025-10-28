@@ -7,6 +7,7 @@ import { callUpdateCart, updateProductInventoryAction } from "@/app/actions";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import colors from "@/app/color/color";
 
 export default function Cart() {
   const { theme } = useTheme();
@@ -259,11 +260,7 @@ export default function Cart() {
         <p className="text-red-600">Please log in to view your cart.</p>
         <Link href="/login">
           <button
-            className={`mt-4 px-4 py-2 rounded-md ${
-              theme
-                ? "bg-orange-600 text-white hover:bg-orange-700"
-                : "bg-orange-500 text-white hover:bg-orange-600"
-            }`}
+            className={`mt-4 px-4 py-2 rounded-md text-white ${colors.keyColorBg} ${colors.keyColorHoverBg}`}
           >
             Log In
           </button>
@@ -310,18 +307,16 @@ export default function Cart() {
             return (
               <div key={item.id}>
                 <div
-                  className={`flex flex-col sm:items-center gap-4 p-4 border-[1px] sm:hidden rounded-md ${
-                    theme ? "border-orange-800" : "border-orange-600"
-                  }`}
+                  className={`flex flex-col sm:items-center gap-4 p-4 border-[1px] sm:hidden rounded-md ${colors.keyColorBorder}`}
                 >
-                  <div className="relative w-full h-[150px] sm:w-24 sm:h-24 flex-shrink-0">
+                  <Link href={`/product/${product.id}`} className="relative w-full h-[150px] sm:w-24 sm:h-24 flex-shrink-0">
                     <Image
                       src={product.image || "/placeholder.jpg"}
                       alt={product.name || "Product"}
                       fill
                       className="object-cover rounded-md"
                     />
-                  </div>
+                  </Link>
                   <div className="flex flex-col sm:flex sm:items-center sm:flex-grow gap-2 sm:gap-4">
                     <div className="flex-grow">
                       <h3 className="font-semibold">
@@ -370,11 +365,7 @@ export default function Cart() {
                             "decrement"
                           )
                         }
-                        className={`px-2 py-1 rounded-md ${
-                          theme
-                            ? "bg-orange-600 text-white hover:bg-orange-700"
-                            : "bg-orange-500 text-white hover:bg-orange-600"
-                        } ${
+                        className={`px-2 py-1 rounded-md text-white ${colors.keyColorBg} ${colors.keyColorHoverBg} ${
                           isUpdating[`${item.id}-decrement`]
                             ? "opacity-50 cursor-not-allowed"
                             : ""
@@ -395,11 +386,7 @@ export default function Cart() {
                             "increment"
                           )
                         }
-                        className={`px-2 py-1 rounded-md ${
-                          theme
-                            ? "bg-orange-600 text-white hover:bg-orange-700"
-                            : "bg-orange-500 text-white hover:bg-orange-600"
-                        } ${
+                        className={`px-2 py-1 rounded-md text-white ${colors.keyColorBg} ${colors.keyColorHoverBg} ${
                           isUpdating[`${item.id}-increment`]
                             ? "opacity-50 cursor-not-allowed"
                             : ""
@@ -429,18 +416,16 @@ export default function Cart() {
                   </div>
                 </div>
                 <div
-                  className={`sm:flex hidden items-center gap-4 p-4 border-[1px] rounded-md ${
-                    theme ? "border-orange-800" : "border-orange-600"
-                  }`}
+                  className={`sm:flex hidden items-center gap-4 p-4 border-[1px] rounded-md ${colors.keyColorBorder}`}
                 >
-                  <div className="relative w-24 h-24">
+                  <Link href={`/product/${product.id}`} className="relative w-24 h-24">
                     <Image
                       src={product.image || "/placeholder.jpg"}
                       alt={product.name || "Product"}
                       fill
                       className="object-cover rounded-md"
                     />
-                  </div>
+                  </Link>
                   <div className="flex-grow">
                     <h3 className="font-semibold">
                       {product.name || "Unknown Product"}
@@ -488,11 +473,7 @@ export default function Cart() {
                           "decrement"
                         )
                       }
-                      className={`px-2 py-1 rounded-md ${
-                        theme
-                          ? "bg-orange-600 text-white hover:bg-orange-700"
-                          : "bg-orange-500 text-white hover:bg-orange-600"
-                      } ${
+                      className={`px-2 py-1 rounded-md text-white ${colors.keyColorBg} ${colors.keyColorHoverBg} ${
                         isUpdating[`${item.id}-decrement`]
                           ? "opacity-50 cursor-not-allowed"
                           : ""
@@ -512,11 +493,7 @@ export default function Cart() {
                           "increment"
                         )
                       }
-                      className={`px-2 py-1 rounded-md ${
-                        theme
-                          ? "bg-orange-600 text-white hover:bg-orange-700"
-                          : "bg-orange-500 text-white hover:bg-orange-600"
-                      } ${
+                      className={`px-2 py-1 rounded-md text-white ${colors.keyColorBg} ${colors.keyColorHoverBg} ${
                         isUpdating[`${item.id}-increment`]
                           ? "opacity-50 cursor-not-allowed"
                           : ""
@@ -550,11 +527,7 @@ export default function Cart() {
       <div className="mt-4">
         <p className="text-lg font-semibold">Total: ${calculateTotal()}</p>
         <button
-          className={`mt-4 px-4 py-2 rounded-md ${
-            theme
-              ? "bg-orange-600 text-white hover:bg-orange-700"
-              : "bg-orange-500 text-white hover:bg-orange-600"
-          }`}
+          className={`mt-4 px-4 py-2 rounded-md text-white ${colors.keyColorBg} ${colors.keyColorHoverBg}`}
         >
           Proceed to Checkout
         </button>

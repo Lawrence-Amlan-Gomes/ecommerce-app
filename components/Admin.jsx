@@ -10,6 +10,7 @@ import {
 } from "@/app/actions";
 import Image from "next/image";
 import { FaCartShopping } from "react-icons/fa6";
+import colors from "@/app/color/color";
 
 export default function Admin() {
   const { auth } = useAuth();
@@ -183,13 +184,13 @@ export default function Admin() {
       }`}
     >
       <h1
-        className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-8 ${
+        className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-[8%] ${
           theme ? "text-[#333333]" : "text-[#dddddd]"
         }`}
       >
         Admin - Create Product
       </h1>
-      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
+      <form onSubmit={handleSubmit} className="w-full mx-auto">
         {/* Two-column grid for all form elements */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Left Column: ID, Name, Price, Image */}
@@ -273,9 +274,7 @@ export default function Admin() {
                 Product Image
               </label>
               <div
-                className={`relative w-full h-[400px] mt-1 rounded-md border-[1px] overflow-hidden flex items-center justify-center ${
-                  theme ? "border-orange-700" : "border-orange-700"
-                }`}
+                className={`relative w-full h-[200px] mt-1 rounded-md border-[1px] overflow-hidden flex items-center justify-center ${colors.keyColorBorder}`}
                 onClick={handleImageClick}
               >
                 {isUploading ? (
@@ -433,11 +432,7 @@ export default function Admin() {
             <div>
               <button
                 type="submit"
-                className={`w-full py-2 rounded-md text-sm font-medium ${
-                  theme
-                    ? "bg-orange-800 text-[#ffffff] hover:bg-orange-900"
-                    : "bg-orange-700 text-[#ffffff] hover:bg-orange-800"
-                }`}
+                className={`w-full py-2 rounded-md text-sm font-medium text-white ${colors.keyColorBg} ${colors.keyColorhoverBg} hover:opacity-90`}
               >
                 Create Product
               </button>
