@@ -1,6 +1,5 @@
 "use client";
 
-import { callUpdateCart, updateProductInventoryAction } from "@/app/actions";
 import colors from "@/app/color/color";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useResponse } from "@/app/hooks/useResponse";
@@ -95,7 +94,6 @@ export default function ProductCard({
       // === CLIENT-SIDE: Update Cart ===
       let updatedCartArray;
       if (newQuantity === 0) {
-        // Remove item completely
         updatedCartArray = auth.cart.filter((item) => item.id !== Number(id));
       } else {
         const existingIndex = auth.cart.findIndex((item) => item.id === Number(id));
@@ -120,30 +118,6 @@ export default function ProductCard({
 
       setAuth({ ...auth, cart: updatedCartArray });
       console.log("ProductCard: Client-side cart updated:", updatedCartArray);
-
-      // === SERVER: Sync Inventory ===
-      if (isInCart) {
-        // Only update inventory when removing (restock)
-        updateProductInventoryAction(id, newInventory).catch((err) => {
-          console.error("ProductCard: Server inventory restock failed:", err);
-          setError("Failed to sync inventory with server.");
-          setTimeout(() => setError(""), 3000);
-        });
-      } else {
-        // Only update when adding (reduce stock)
-        updateProductInventoryAction(id, newInventory).catch((err) => {
-          console.error("ProductCard: Server inventory update failed:", err);
-          setError("Failed to sync inventory with server.");
-          setTimeout(() => setError(""), 3000);
-        });
-      }
-
-      // === SERVER: Sync Cart ===
-      callUpdateCart(auth.email, updatedCartArray).catch((err) => {
-        console.error("ProductCard: Server cart update failed:", err);
-        setError("Failed to sync cart with server.");
-        setTimeout(() => setError(""), 3000);
-      });
     } catch (error) {
       console.error("ProductCard: Error toggling cart:", error);
       setError(`Failed to update cart: ${error.message}`);

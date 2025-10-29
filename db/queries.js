@@ -70,6 +70,22 @@ async function productInventoryUpdate(id, inventory) {
   await productModel.updateOne({ id: id }, { $set: { inventory: inventory } });
 }
 
+// Add this function inside your existing export
+async function checkProductsAvailability(cartItems) {
+  // cartItems: [{ id: number, quantity: number }]
+  const checks = await Promise.all(
+    cartItems.map(async (item) => {
+      const product = await productModel.findOne({ id: item.id }).lean();
+      if (!product) return { id: item.id, available: false, reason: "Product not found" };
+      if (product.inventory < item.quantity) {
+        return { id: item.id, available: false, reason: `Only ${product.inventory} in stock` };
+      }
+      return { id: item.id, available: true, currentInventory: product.inventory };
+    })
+  );
+  return checks;
+}
+
 export {
   changePassword,
   changePhoto,
@@ -83,4 +99,5 @@ export {
   productExistsBySku,
   updateCart,
   productInventoryUpdate,
+  checkProductsAvailability,
 };

@@ -1,13 +1,43 @@
 "use client";
 import { useTheme } from "@/app/hooks/useTheme";
 import { useResponse } from "@/app/hooks/useResponse";
+import { getAllProductsAction } from "@/app/actions";
+import { useEffect, useState } from "react";
 import Footer from "./Footer";
 import ProductCard from "./ProductCard";
 
 export default function Products() {
   const { theme } = useTheme();
-  const { products } = useResponse();
+  const { products, setProducts } = useResponse();
   const dummyCount = 12; // Number of dummy cards to show when loading
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    // Fetch all products from the database
+    const fetchProducts = async () => {
+      try {
+        const fetchedProducts = await getAllProductsAction();
+        setProducts((prev) => {
+          // Ensure prev is an array
+          const prevArray = Array.isArray(prev) ? prev : [];
+          // Avoid duplicates by checking IDs
+          const newProducts = fetchedProducts.filter(
+            (newProduct) =>
+              !prevArray.some((existing) => existing.id === newProduct.id)
+          );
+          return [...prevArray, ...newProducts];
+        });
+      } catch (err) {
+        setError("Failed to load products. Please try again later.");
+        console.error("Error fetching products:", err);
+      }
+    };
+
+    // Only fetch if products state is empty
+    if (products.length === 0) {
+      fetchProducts();
+    }
+  }, [products.length, setProducts]);
 
   return (
     <>

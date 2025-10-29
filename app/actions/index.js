@@ -14,6 +14,7 @@ import {
   productExistsBySku,
   updateCart,
   productInventoryUpdate,
+  checkProductsAvailability,
 } from '@/db/queries';
 import { dbConnect } from '@/services/mongo';
 import { revalidatePath } from 'next/cache';
@@ -141,6 +142,18 @@ async function updateProductInventoryAction(id, inventory) {
   }
 }
 
+// Add this new server action
+async function checkCartAvailabilityAction(cart) {
+  await dbConnect();
+  try {
+    const result = await checkProductsAvailability(cart);
+    const allAvailable = result.every(r => r.available);
+    return { allAvailable, details: result };
+  } catch (error) {
+    throw error;
+  }
+}
+
 export {
   callChangePassword,
   callChangePhoto,
@@ -155,4 +168,5 @@ export {
   checkProductBySku,
   callUpdateCart,
   updateProductInventoryAction,
+  checkCartAvailabilityAction,
 };

@@ -3,7 +3,6 @@
 import { useTheme } from "@/app/hooks/useTheme";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useResponse } from "@/app/hooks/useResponse";
-import { callUpdateCart, updateProductInventoryAction } from "@/app/actions";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -12,86 +11,63 @@ import colors from "@/app/color/color";
 export default function Cart() {
   const { theme } = useTheme();
   const { auth, setAuth } = useAuth();
-  const { products, setProducts } = useResponse(); // Use useResponse for products array
-  const [error, setError] = useState("");
-  const [outOfStockMessage, setOutOfStockMessage] = useState("");
+  const { products, setProducts } = useResponse();
   const [isUpdating, setIsUpdating] = useState({});
-
-  const retryCallUpdateCart = async (email, cartArray) => {
-    try {
-      console.log("Cart: Updating cart in background for:", email, cartArray);
-      await callUpdateCart(email, cartArray);
-      console.log("Cart: Server cart updated successfully:", cartArray);
-    } catch (error) {
-      console.error("Cart: Server cart update failed:", {
-        message: error.message,
-        stack: error.stack,
-      });
-      setError("Failed to sync cart with server.");
-      setTimeout(() => setError(""), 3000);
-    }
-  };
 
   const handleUpdateQuantity = (productId, quantity, action) => {
     if (quantity < 1) return;
+
     if (!auth?.email) {
-      setError("Please log in to update the cart.");
-      console.error("Cart: No user logged in for update");
+      alert("Please log in to update the cart.");
       return;
     }
+
     if (isUpdating[`${productId}-${action}`]) return;
+
     setIsUpdating((prev) => ({ ...prev, [`${productId}-${action}`]: true }));
+
     try {
       const product = products.find((p) => p.id === Number(productId));
       if (!product) {
-        setError("Product not found.");
-        console.error("Cart: Product not found for id:", productId);
-        return;
-      }
-      const isIncreasing = action === "increment";
-      if (isIncreasing && product.inventory <= 0) {
-        setOutOfStockMessage(`${product.name} out of stock`);
-        setTimeout(() => setOutOfStockMessage(""), 3000);
-        console.log("Cart: Out of stock for product:", product.name);
+        alert("Product not found.");
         return;
       }
 
-      // Client-side update: inventory
-      const inventoryChange = isIncreasing ? -1 : 1;
-      const newInventory = product.inventory + inventoryChange;
-      if (newInventory < 0) {
-        setError("Cannot update: insufficient inventory.");
-        console.error(
-          "Cart: Negative inventory prevented for product:",
-          productId
-        );
+      const isIncreasing = action === "increment";
+
+      // OUT OF STOCK → ALERT ONLY
+      if (isIncreasing && product.inventory <= 0) {
+        alert(`${product.name} is out of stock.`);
         return;
       }
+
+      const inventoryChange = isIncreasing ? -1 : 1;
+      const newInventory = product.inventory + inventoryChange;
+
+      if (newInventory < 0) {
+        alert("Cannot update: insufficient inventory.");
+        return;
+      }
+
+      // Update inventory
       setProducts(
         products.map((p) =>
           p.id === Number(productId) ? { ...p, inventory: newInventory } : p
         )
       );
-      console.log("Cart: Client-side inventory updated:", {
-        productId,
-        newInventory,
-        action,
-      });
 
-      // Client-side update: cart
+      // Update cart
       const currentCart = Array.isArray(auth?.cart)
         ? auth.cart.filter(
             (item) =>
               item &&
               typeof item === "object" &&
               "id" in item &&
-              typeof item.id === "number" &&
               "quantity" in item &&
-              typeof item.quantity === "number" &&
-              "date" in item &&
-              typeof item.date === "string"
+              "date" in item
           )
         : [];
+
       const updatedCartArray = currentCart.map((item) =>
         item.id === Number(productId)
           ? {
@@ -105,35 +81,10 @@ export default function Cart() {
             }
           : item
       );
-      setAuth({ ...auth, cart: updatedCartArray });
-      console.log("Cart: Client-side cart updated:", {
-        productId,
-        quantity,
-        action,
-        updatedCartArray,
-      });
 
-      // Server update in background
-      updateProductInventoryAction(productId, newInventory).catch((err) => {
-        console.error("Cart: Server inventory update failed:", {
-          message: err.message,
-          stack: err.stack,
-          productId,
-          action,
-        });
-        setError("Failed to sync inventory with server.");
-        setTimeout(() => setError(""), 3000);
-      });
-      retryCallUpdateCart(auth.email, updatedCartArray);
+      setAuth({ ...auth, cart: updatedCartArray });
     } catch (error) {
-      console.error("Cart: Error updating cart item:", {
-        message: error.message,
-        stack: error.stack,
-        productId,
-        action,
-      });
-      setError(`Failed to update quantity: ${error.message}`);
-      setTimeout(() => setError(""), 3000);
+      alert(`Failed to update quantity: ${error.message}`);
     } finally {
       setIsUpdating((prev) => ({ ...prev, [`${productId}-${action}`]: false }));
     }
@@ -141,95 +92,64 @@ export default function Cart() {
 
   const handleRemoveItem = (productId) => {
     if (!auth?.email) {
-      setError("Please log in to update the cart.");
-      console.error("Cart: No user logged in for remove");
+      alert("Please log in to remove items from the cart.");
       return;
     }
+
     if (isUpdating[`${productId}-remove`]) return;
+
     setIsUpdating((prev) => ({ ...prev, [`${productId}-remove`]: true }));
+
     try {
       const product = products.find((p) => p.id === Number(productId));
       if (!product) {
-        setError("Product not found.");
-        console.error("Cart: Product not found for id:", productId);
+        alert("Product not found.");
         return;
       }
+
       const currentCart = Array.isArray(auth?.cart)
         ? auth.cart.filter(
             (item) =>
               item &&
               typeof item === "object" &&
               "id" in item &&
-              typeof item.id === "number" &&
               "quantity" in item &&
-              typeof item.quantity === "number" &&
-              "date" in item &&
-              typeof item.date === "string"
+              "date" in item
           )
         : [];
+
       const currentItem = currentCart.find(
         (item) => item.id === Number(productId)
       );
       if (!currentItem) {
-        setError("Item not found in cart.");
-        console.error("Cart: Item not found in cart for id:", productId);
+        alert("Item not found in cart.");
         return;
       }
 
-      // Client-side update: inventory
       const newInventory = product.inventory + currentItem.quantity;
       setProducts(
         products.map((p) =>
           p.id === Number(productId) ? { ...p, inventory: newInventory } : p
         )
       );
-      console.log("Cart: Client-side inventory updated on remove:", {
-        productId,
-        newInventory,
-      });
 
-      // Client-side update: cart
       const updatedCartArray = currentCart.filter(
         (item) => item.id !== Number(productId)
       );
       setAuth({ ...auth, cart: updatedCartArray });
-      console.log("Cart: Client-side cart updated on remove:", {
-        productId,
-        updatedCartArray,
-      });
-
-      // Server update in background
-      updateProductInventoryAction(productId, newInventory).catch((err) => {
-        console.error("Cart: Server inventory update failed:", {
-          message: err.message,
-          stack: err.stack,
-          productId,
-        });
-        setError("Failed to sync inventory with server.");
-        setTimeout(() => setError(""), 3000);
-      });
-      retryCallUpdateCart(auth.email, updatedCartArray);
     } catch (error) {
-      console.error("Cart: Error removing from cart:", {
-        message: error.message,
-        stack: error.stack,
-        productId,
-      });
-      setError(`Failed to remove item: ${error.message}`);
-      setTimeout(() => setError(""), 3000);
+      alert(`Failed to remove item: ${error.message}`);
     } finally {
       setIsUpdating((prev) => ({ ...prev, [`${productId}-remove`]: false }));
     }
   };
 
   const getProductDetails = (productId) => {
-    const product = products.find((product) => product.id === productId) || {};
-    console.log("Cart: Product details for id:", { productId, product });
-    return product;
+    return products.find((p) => p.id === productId) || {};
   };
 
   const calculateTotal = () => {
-    const total = (auth?.cart || [])
+    return (auth?.cart || [])
       .reduce((total, item) => {
         const product = getProductDetails(item.id);
         const price =
@@ -239,8 +159,6 @@ export default function Cart() {
         return total + (price || 0) * item.quantity;
       }, 0)
       .toFixed(2);
-    console.log("Cart: Calculated total:", { total, cart: auth?.cart });
-    return total;
   };
 
   const cartCount = (auth?.cart || []).reduce(
@@ -249,7 +167,6 @@ export default function Cart() {
   );
 
   if (!auth?.email) {
-    console.log("Cart: No user logged in");
     return (
       <div
         className={`px-[10%] py-8 w-full ${
@@ -271,45 +188,37 @@ export default function Cart() {
 
   return (
     <div
-      className={`px-[10%] py-8 mt-[15%] sm:mt-[10%] w-full relative ${
+      className={`px-[10%] py-8 mt-[15%] sm:mt-[10%] w-full ${
         theme ? "bg-[#ffffff] text-[#333333]" : "bg-[#000000] text-[#dddddd]"
       }`}
     >
       <h2 className="text-2xl font-bold mb-4">Your Cart ({cartCount})</h2>
-      {error && (
-        <div
-          className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-md text-white bg-red-600 text-sm z-50`}
-        >
-          {error}
-        </div>
-      )}
-      {outOfStockMessage && (
-        <div
-          className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-md text-white bg-red-600 text-sm z-50`}
-        >
-          {outOfStockMessage}
-        </div>
-      )}
+
+      {/* NO TOASTS, NO POPUPS — ONLY ALERTS */}
+
       {!auth.cart || auth.cart.length === 0 ? (
         <p>Your cart is empty.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {auth.cart.map((item) => {
-            if (!item.id || !item.quantity || !item.date) {
-              console.warn("Cart: Invalid cart item skipped:", item);
-              return null;
-            }
+            if (!item.id || !item.quantity || !item.date) return null;
+
             const product = getProductDetails(item.id);
             const discountedPrice =
               product.discount > 0
                 ? (product.price * (1 - product.discount / 100)).toFixed(2)
                 : product.price?.toFixed(2);
+
             return (
               <div key={item.id}>
+                {/* Mobile */}
                 <div
                   className={`flex flex-col sm:items-center gap-4 p-4 border-[1px] sm:hidden rounded-md ${colors.keyColorBorder}`}
                 >
-                  <Link href={`/product/${product.id}`} className="relative w-full h-[150px] sm:w-24 sm:h-24 flex-shrink-0">
+                  <Link
+                    href={`/product/${product.id}`}
+                    className="relative w-full h-[150px] flex-shrink-0"
+                  >
                     <Image
                       src={product.image || "/placeholder.jpg"}
                       alt={product.name || "Product"}
@@ -365,7 +274,9 @@ export default function Cart() {
                             "decrement"
                           )
                         }
-                        className={`px-2 py-1 rounded-md text-white ${colors.keyColorBg} ${colors.keyColorHoverBg} ${
+                        className={`px-2 py-1 rounded-md text-white ${
+                          colors.keyColorBg
+                        } ${colors.keyColorHoverBg} ${
                           isUpdating[`${item.id}-decrement`]
                             ? "opacity-50 cursor-not-allowed"
                             : ""
@@ -386,7 +297,9 @@ export default function Cart() {
                             "increment"
                           )
                         }
-                        className={`px-2 py-1 rounded-md text-white ${colors.keyColorBg} ${colors.keyColorHoverBg} ${
+                        className={`px-2 py-1 rounded-md text-white ${
+                          colors.keyColorBg
+                        } ${colors.keyColorHoverBg} ${
                           isUpdating[`${item.id}-increment`]
                             ? "opacity-50 cursor-not-allowed"
                             : ""
@@ -415,10 +328,15 @@ export default function Cart() {
                     </div>
                   </div>
                 </div>
+
+                {/* Desktop */}
                 <div
                   className={`sm:flex hidden items-center gap-4 p-4 border-[1px] rounded-md ${colors.keyColorBorder}`}
                 >
-                  <Link href={`/product/${product.id}`} className="relative w-24 h-24">
+                  <Link
+                    href={`/product/${product.id}`}
+                    className="relative w-24 h-24"
+                  >
                     <Image
                       src={product.image || "/placeholder.jpg"}
                       alt={product.name || "Product"}
@@ -473,7 +391,9 @@ export default function Cart() {
                           "decrement"
                         )
                       }
-                      className={`px-2 py-1 rounded-md text-white ${colors.keyColorBg} ${colors.keyColorHoverBg} ${
+                      className={`px-2 py-1 rounded-md text-white ${
+                        colors.keyColorBg
+                      } ${colors.keyColorHoverBg} ${
                         isUpdating[`${item.id}-decrement`]
                           ? "opacity-50 cursor-not-allowed"
                           : ""
@@ -493,7 +413,9 @@ export default function Cart() {
                           "increment"
                         )
                       }
-                      className={`px-2 py-1 rounded-md text-white ${colors.keyColorBg} ${colors.keyColorHoverBg} ${
+                      className={`px-2 py-1 rounded-md text-white ${
+                        colors.keyColorBg
+                      } ${colors.keyColorHoverBg} ${
                         isUpdating[`${item.id}-increment`]
                           ? "opacity-50 cursor-not-allowed"
                           : ""
@@ -524,13 +446,16 @@ export default function Cart() {
           })}
         </div>
       )}
+
       <div className="mt-4">
         <p className="text-lg font-semibold">Total: ${calculateTotal()}</p>
-        <button
-          className={`mt-4 px-4 py-2 rounded-md text-white ${colors.keyColorBg} ${colors.keyColorHoverBg}`}
-        >
-          Proceed to Checkout
-        </button>
+        <Link href="/billing">
+          <button
+            className={`mt-4 px-4 py-2 rounded-md text-white ${colors.keyColorBg} ${colors.keyColorHoverBg}`}
+          >
+            Proceed to Checkout
+          </button>
+        </Link>
       </div>
     </div>
   );
